@@ -1,10 +1,6 @@
 volumes:
-  chroma-data:
   openwebui-data:
-  perplexica-data:
-    driver: local
   perplexica-uploads:
-    driver: local
 
 services:
   searxng:
@@ -28,7 +24,7 @@ services:
     #container_name: perplexica
     #network_mode: host
     volumes:
-      - perplexica-data:/home/perplexica/data:Z
+      - ./perplexica/data:/home/perplexica/data:Z
       - perplexica-uploads:/home/perplexica/uploads:Z
     environment:
       - SEARXNG_API_URL=http://searxng:8080

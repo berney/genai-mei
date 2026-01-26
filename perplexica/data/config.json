@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "setupComplete": true,
+  "preferences": {},
+  "personalization": {},
+  "modelProviders": [
+    {
+      "id": "69063d28-76b9-4500-a2a6-eda0c42e7480",
+      "name": "Transformers",
+      "type": "transformers",
+      "chatModels": [],
+      "embeddingModels": [],
+      "config": {},
+      "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "id": "1d3d4e59-4409-4799-a9b6-15b2df0b352a",
+      "name": "llama-swap",
+      "type": "openai",
+      "config": {
+        "name": "llama-swap",
+        "apiKey": ".",
+        "baseURL": "http://llama-swap:8080/v1"
+      },
+      "chatModels": [
+        {
+          "name": "x",
+          "key": "x"
+        },
+        {
+          "name": "heretic-gpt-oss-120b",
+          "key": "heretic-gpt-oss-120b"
+        }
+      ],
+      "embeddingModels": [],
+      "hash": "f1351e2df8e2523557d7ce3cc6dcc043ca9b246b1a49c61374fe75c27be1c392"
+    }
+  ],
+  "search": {
+    "searxngURL": "http://searxng:8080"
+  }
+}

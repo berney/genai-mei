@@ -1,0 +1,6 @@
+# Ignore all files in this directory
+*
+# Except the .gitignore
+!.gitignore
+# and config.json
+!config.json
