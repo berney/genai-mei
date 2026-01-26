@@ -1,0 +1,39 @@
+# huggingface lock file
+#
+# This file defines model repositories and optional include/exclude/ref settings.
+# The `download-models` python module parses this file and does the equivalent of `hf download <repo> [--include <pattern>] [--exclude <pattern>] [--revision <ref>]` for each model.
+#
+#
+# Example lock file:
+#
+# ```yaml
+# models:
+#   # Example just repo
+#   - repo: my-org/my-model
+#
+#   # Example repo + include pattern
+#   - repo: my-org/my-model
+#     include: path/to/files/*
+#
+#   # Example repo + include + exclude + ref
+#   - repo: my-org/my-model
+#     include: path/to/files/*
+#     exclude: path/to/ignore/*
+#     ref: v1.2.3
+#```
+
+models:
+  - repo: bartowski/kldzj_gpt-oss-120b-heretic-GGUF
+    include: kldzj_gpt-oss-120b-heretic-bf16/*
+
+  - repo: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF
+    include: Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
+
+  #- repo: deepseek-ai/DeepSeek-R1
+  #  include: DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf
+  #- repo: kldzj/gpt-oss-120b
+  #  include: kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
+  #- repo: meta-llama/Llama-4-Scout
+  #  include: Llama-4-Scout-17B-16E-Instruct-Q4_K_M-00001-of-00002.gguf
+  #- repo: Qwen/Qwen3-4B-128K
+  #  include: unsloth_Qwen3-4B-128K-GGUF_Qwen3-4B-128K-UD-Q6_K_XL.gguf
