@@ -44,7 +44,6 @@ The repository is organised around a **Docker‑Compose** stack that brings toge
 
 All services expose HTTP APIs (or CLI entry points) that can be consumed by downstream applications or by the other services in the stack.
 
----
 
 
 ## Features
@@ -55,26 +54,40 @@ All services expose HTTP APIs (or CLI entry points) that can be consumed by down
 - **Persisted data** – SQLite DB for Perplexica and volume mounts for model caches ensure data survives container restarts.
 - **Ready for extension** – add new services by dropping a folder with a Dockerfile and updating `docker-compose.yml`.
 
----
 
 
-## Prerequisites
+## Hardware Requirements
 
-- Docker Engine (>= 20.10) (or Podman)
-- Docker‑Compose (v2 syntax, bundled with recent Docker releases)
-- Optional: `git` for cloning the repository
+- **AMD Ryzen AI Max+ 395** (or other Strix Halo APU)
+- **128GB unified memory** (for large model inference)
+- Tested on Framework Desktop
 
----
+
+## Software Prerequisites
+
+- Container runtime - Podamn API service (tested on Podman 5.7.1)
+- Docker‑Compose (v2 syntax)
+
+
+### Kernel Parameters
+
+Add these to your bootloader (systemd-boot or GRUB):
+
+```
+amdgpu.gttsize=131072    # 128GB GTT aperture for large models
+ttm.pages_limit=33554432 # Increase TTM page limit
+amd_iommu=off            # Disable IOMMU (causes issues with ROCm)
+```
 
 
 ## Installation & Quick Start
 
 ```bash
 # Clone the repository
-git clone https://github.com/your‑org/genai‑mei.git
+git clone https://github.com/berney/genai‑mei.git
 cd genai‑mei
 
-# Build and start all services (detached mode)
+# Start all services (pulls and/or builds images)
 docker compose up
 ```
 
@@ -88,14 +101,16 @@ You can verify that everything is running with:
 docker compose ps
 ```
 
----
-
 
 ## Configuration
 
 ### Docker Compose
 
 The top‑level `docker-compose.yml` defines the services, networks, and volumes.
+
+Service profiles are used to control which services are default.
+Services with an assigned profile are not default, and need to be manually started.
+
 Most runtime options (ports, environment variables, bind‑mounts) are declared there.
 Feel free to edit the file to change host ports or to add extra environment variables.
 
@@ -110,7 +125,6 @@ Feel free to edit the file to change host ports or to add extra environment vari
 
 All config files are mounted read‑only into the containers, so changes take effect after a container restart (`docker compose restart <service>`).
 
----
 
 
 ## Running the Services
@@ -128,7 +142,105 @@ Below are the default ports (as defined in `docker-compose.yml`). Adjust them in
 
 You can interact with the HTTP services using your web browser, `xh`, `curl`, etc.
 
----
+> **Tip:** To chat with a model, open the llama-swap UI and click on a loaded model to access the llama.cpp chat interface.
+
+
+## Models
+
+**Always loaded:**
+| Model         | Purpose                     |
+|---------------|-----------------------------|
+| Qwen3-4B-128K | Fast responses, quick tasks |
+
+> **Note:** Perplexica handles embeddings locally via transformers.js - no external embedding model needed.
+
+**Swappable** (via ROCm7 backend - one at a time):
+| Model                   | Aliases | Purpose |
+|-------------------------|-------------------------------------|--------------------------------|
+| Qwen3-Coder-30B-A3B     | `coder`, `code`, `dev`              | Coding (MoE, 3B active params) |
+| DeepSeek-R1-Distill-70B | `deepseek`, `r1`, `reasoning`       | Chain-of-thought reasoning     |
+| Llama-4-Scout-17B-16E   | `scout`, `vision`, `multimodal`     | Vision + text (MoE)            |
+| Heretic-GPT-OSS-120B    | `gpt-120b`, `heretic`, `uncensored` | Large uncensored model         |
+
+
+## Testing
+
+### `xh`
+```bash
+# Check loaded models
+xh localhost:8090/running
+
+# List available models
+xh localhost:8090/v1/models
+
+# Test inference
+xh localhost:8090/v1/chat/completions content-type:application/json model=heretic-gpt-oss-120b max_tokens=50 messages:='[{"role": "user", "content": "Hello!"}]'
+```
+
+### `curl`
+
+```bash
+# Check loaded models
+curl -s http://localhost:8090/running | jq
+
+# List available models
+curl -s http://localhost:8090/v1/models | jq
+
+# Test inference
+curl -s http://localhost:8090/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"qwen-coder-30b","messages":[{"role":"user","content":"Hello!"}],"max_tokens":50}'
+```
+
+
+## Benchmarking
+
+* The `docker-compose.yml` has services for benchmarking in the form `<model>-benchmark`.
+
+```bash
+docker compose run --rm gpt-120b-benchmark
+```
+
+**Key metrics:**
+- **pp** (prompt processing) - tokens/sec for processing input
+- **tg** (text generation) - tokens/sec for generating output
+
+**Common flags:**
+| Flag | Description |
+|------|-------------|
+| `-m` | Model path |
+| `-p` | Prompt sizes to test (comma-separated) |
+| `-n` | Tokens to generate |
+| `-ngl` | GPU layers (999 = all) |
+| `-fa` | Flash attention (1 = on) |
+| `-t` | CPU threads |
+
+
+### Results (2026-01-26)
+
+```bash
+docker compose run --rm gpt-120b-benchmark
+```
+
+```
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           pp512 |       406.37 ± 69.26 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp1024 |        428.13 ± 3.20 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp2048 |        416.15 ± 7.96 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           tg128 |         33.90 ± 0.15 |
+
+build: 785a71008 (7751)
+```
+
+
+## GPU Backend Notes
+
+- **ROCm7** is used for all models (native gfx1151 support via kyuz0's container)
+- **Do NOT set `HSA_OVERRIDE_GFX_VERSION`** - causes kernel mismatches on Strix Halo
+- Set `HSA_ENABLE_SDMA=0` in ROCm containers to prevent DMA issues
 
 
 ## Project Structure
@@ -156,8 +268,6 @@ genai-mei/
 └── LICENSE                 # Project license
 ```
 
----
-
 
 ## Architecture
 
@@ -179,11 +289,8 @@ genai-mei/
 This repo mainlys serves myself and to share with others what I did and how I did it.
 Ideas are welcomed, I'm always looking to improve things, if it fits my vision.
 
----
 
 
 ## License
 
 This project is licensed under the **AGPL-3.0 License** – see the `LICENSE` file for details.
-
----

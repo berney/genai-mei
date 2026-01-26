@@ -149,37 +149,18 @@ services:
 
   # large uncensored model
   # bdawg: Would Q8_0 be better? The GPU has bf16: 0
-  gpt-120b:
+  gpt-120b-benchmark: &gpt-120b
     profiles:
-      - gpt-120b
+      - gpt-120b-benchmark
     image: docker.io/kyuz0/amd-strix-halo-toolboxes:vulkan-radv
     command: >-
-      llama-server
-      --host 0.0.0.0
-      --port 8120
+      llama-bench
       -ngl 999
-      --cont-batching
-      -np 1
       --no-warmup
-      --context-shift
       --flash-attn on
+      -p 512,1024,2048
+      -n 128
       -m /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
-      --ctx-size 32768
-      --temp 0.3
-      --top-p 0.95
-      --min-p 0.05
-      --typical 0.95
-    # Jesse's mess 4 settings
-    #  -m /huggingface/gpt-oss-120b/gpt-oss-120b-Q4_K_M-00001-of-00002.gguf
-    #  -np 4
-    #  --no-mmap
-    #
-    # Jesse: Chat models need jinja + reasoning
-    # llama-server-chat
-    #  --jinja
-    #  --reasoning-format auto
-    ports:
-      - 8120:8120
     devices:
       # Direct Rendering Infrastructure (dri) - exposes renderer nodes (renderD128) and compute shaders, used by Vulkan/Mesa
       - /dev/dri:/dev/dri
@@ -203,5 +184,28 @@ services:
     volumes:
       #- ./models:/models:Z
       - ~/.cache/huggingface:/huggingface:ro
+
+  gpt-120b:
+    <<: *gpt-120b
+    profiles:
+      - gpt-120b
+    command: >-
+      llama-server
+      --host 0.0.0.0
+      --port 8120
+      -ngl 999
+      --cont-batching
+      -np 1
+      --no-warmup
+      --context-shift
+      --flash-attn on
+      -m /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
+      --ctx-size 32768
+      --temp 0.3
+      --top-p 0.95
+      --min-p 0.05
+      --typical 0.95
+    ports:
+      - 8120:8120
 
     # XXX TODO Add more models - see Jesse's llama-swap config
