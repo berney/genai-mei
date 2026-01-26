@@ -35,6 +35,7 @@ services:
       - "3001:3001"
     depends_on:
       - searxng
+      - llama-swap
 
   llama-swap:
     # vulkan for AMD Strix Halo
@@ -114,7 +115,9 @@ services:
       #RAG_WEB_SEARCH_ENGINE: searxng
       #SEARXNG_QUERY_URL: http://localhost:8085/search?q=<query>
       ENABLE_OLLAMA_API: "false"
-    restart: unless-stopped
+    #restart: unless-stopped
+    depends_on:
+      - llama-swap
 
 
   # huggingface CLI
@@ -131,6 +134,7 @@ services:
     volumes:
       - ~/.cache/huggingface:/home/bdawg/.cache/huggingface:Z
       #- ./models:/models:Z
+
 
   mistral-vibe:
     profiles:
