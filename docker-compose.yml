@@ -76,14 +76,14 @@ services:
       - label=disable
     ports:
       - 8090:8080
-    working_dir: /llama-swap
+    working_dir: /genai-mei
     command: llama-swap -config config.yaml
     volumes:
       - ./llama-swap/config.yaml:/app/config.yaml:Z
     #  - ./config:/config
       - ${XDG_RUNTIME_DIR}/podman:/run/user/1000/podman:Z
       # The parent directory needs to match the host as docker-compose bases the container names off it
-      - ./docker-compose.yml:/llama-swap/docker-compose.yml:ro
+      - ./docker-compose.yml:/genai-mei/docker-compose.yml:ro
       #- ./models:/models:Z
       # Don't needed to mount as podman (compose) is doing bind mounts from hosts point of view
       # But the `~` in the docker-compose.yml (this file) should match in the container and host (e.g. `bdawg`)
