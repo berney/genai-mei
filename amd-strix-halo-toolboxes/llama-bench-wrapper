@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+# Wrapper for llama-bench that adds -m "${MODEL}" if MODEL is set.
+
+if [ -n "${MODEL}" ]; then
+  set -- -m "${MODEL}" "$@"
+fi
+
+exec llama-bench "$@"

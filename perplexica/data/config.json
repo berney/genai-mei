@@ -14,26 +14,15 @@
       "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
     },
     {
-      "id": "1d3d4e59-4409-4799-a9b6-15b2df0b352a",
+      "id": "4228c514-30df-4b90-a0e4-447421f56287",
       "name": "llama-swap",
-      "type": "openai",
+      "type": "lmstudio",
       "config": {
-        "name": "llama-swap",
-        "apiKey": ".",
         "baseURL": "http://llama-swap:8080/v1"
       },
-      "chatModels": [
-        {
-          "name": "x",
-          "key": "x"
-        },
-        {
-          "name": "heretic-gpt-oss-120b",
-          "key": "heretic-gpt-oss-120b"
-        }
-      ],
+      "chatModels": [],
       "embeddingModels": [],
-      "hash": "f1351e2df8e2523557d7ce3cc6dcc043ca9b246b1a49c61374fe75c27be1c392"
+      "hash": "7caa2a2ae4630e9eae9d74ab590a33eef309c6ab40784c0fd153ce4aeb9d0b75"
     }
   ],
   "search": {

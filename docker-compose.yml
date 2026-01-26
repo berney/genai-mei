@@ -4,6 +4,9 @@ volumes:
 
 services:
   searxng:
+    profiles:
+      # implicit default
+      - ""
     image: docker.io/searxng/searxng:latest
     #container_name: searxng
     ports:
@@ -18,6 +21,9 @@ services:
       retries: 3
 
   perplexica:
+    profiles:
+      # implicit default
+      - ""
     # tag `latest` has a builtin SearxNG
     # tag `slim-latest` doesn't
     image: docker.io/itzcrazykns1337/perplexica:slim-latest
@@ -38,6 +44,9 @@ services:
       - llama-swap
 
   llama-swap:
+    profiles:
+      # implicit default
+      - ""
     # vulkan for AMD Strix Halo
     build: llama-swap
     #image: ghcr.io/mostlygeek/llama-swap:vulkan-non-root
@@ -147,20 +156,11 @@ services:
   # Models
   # --------------------------------------------------------------------------------
 
-  # large uncensored model
-  # bdawg: Would Q8_0 be better? The GPU has bf16: 0
-  gpt-120b-benchmark: &gpt-120b
+  x-model-base: &model-base
     profiles:
-      - gpt-120b-benchmark
-    image: docker.io/kyuz0/amd-strix-halo-toolboxes:vulkan-radv
-    command: >-
-      llama-bench
-      -ngl 999
-      --no-warmup
-      --flash-attn on
-      -p 512,1024,2048
-      -n 128
-      -m /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
+      - x-model-base
+    image: berne/amd-strix-halo-toolboxes:vulkan-radv
+    build: amd-strix-halo-toolboxes
     devices:
       # Direct Rendering Infrastructure (dri) - exposes renderer nodes (renderD128) and compute shaders, used by Vulkan/Mesa
       - /dev/dri:/dev/dri
@@ -181,31 +181,78 @@ services:
       ROCBLAS_LAYER: 4
       # Jesse: in ROCm containers to prevent DMA issues
       HSA_ENABLE_SDMA: 0
+      MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
     volumes:
       #- ./models:/models:Z
       - ~/.cache/huggingface:/huggingface:ro
 
-  gpt-120b:
-    <<: *gpt-120b
+  x-model: &model
+    <<: *model-base
     profiles:
-      - gpt-120b
+      - x-model
     command: >-
-      llama-server
+      llama-server-wrapper
       --host 0.0.0.0
-      --port 8120
       -ngl 999
       --cont-batching
       -np 1
       --no-warmup
       --context-shift
       --flash-attn on
-      -m /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
       --ctx-size 32768
       --temp 0.3
       --top-p 0.95
       --min-p 0.05
       --typical 0.95
+
+  x-model-benchmark: &model-benchmark
+    <<: *model-base
+    profiles:
+      - x-model-benchmark
+    command: >-
+      llama-bench-wrapper
+      -ngl 999
+      --no-warmup
+      --flash-attn on
+      -p 512,1024,2048
+      -n 128
+
+  # large uncensored model
+  # bdawg: Would Q8_0 be better? The GPU has bf16: 0
+  heretic-gpt-oss-120b:
+    <<: *model
+    profiles:
+      - model-heretic-gpt-oss-120b
+    environment: &heretic-gpt-oss-120b-env
+      MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
+      PORT: 8120
     ports:
       - 8120:8120
+
+  heretic-gpt-oss-120b-benchmark:
+    <<: *model-benchmark
+    profiles:
+      - heretic-gpt-oss-120b-benchmark
+      - benchmark
+    environment:
+      <<: *heretic-gpt-oss-120b-env
+
+  # primary coding model
+  qwen-coder-30b:
+    <<: *model
+    environment: &qwen-coder-30b-env
+      MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-30B-A3B-Instruct-GGUF/snapshots/7ce945e58ed3f09f9cf9c33a2122d86ac979b457/Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
+      PORT: 8130
+    ports:
+      - 8130:8130
+
+  qwen-coder-30b-benchmark:
+    <<: *model-benchmark
+    profiles:
+      - qwen-coder-30b-benchmark
+      - benchmark
+    environment:
+      <<: *qwen-coder-30b-env
+
 
     # XXX TODO Add more models - see Jesse's llama-swap config

@@ -225,6 +225,8 @@ docker compose run --rm gpt-120b-benchmark
 ```
 ggml_vulkan: Found 1 Vulkan devices:
 ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+```
+
 | model                          |       size |     params | backend    | ngl |            test |                  t/s |
 | ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
 | gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           pp512 |       406.37 ± 69.26 |
@@ -232,6 +234,15 @@ ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 
 | gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp2048 |        416.15 ± 7.96 |
 | gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           tg128 |         33.90 ± 0.15 |
 
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |           pp512 |      907.06 ± 286.94 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |          pp1024 |        930.83 ± 6.29 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |          pp2048 |       851.43 ± 33.10 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |           tg128 |         58.24 ± 0.43 |
+
+
+```
 build: 785a71008 (7751)
 ```
 

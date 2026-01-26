@@ -1,0 +1,9 @@
+#!/bin/sh
+
+for service in $(docker compose --profile benchmark config --services); do
+    echo "== $service";
+    docker compose run --rm "$service";
+    echo;
+done
+
+# vim: ts=4 sw=4 et

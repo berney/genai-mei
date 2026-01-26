@@ -123,21 +123,24 @@ models:
   # Jesse's framework-ai-cachyos
   # --------------------------------------------------------------------------------
 
+  qwen-coder-30b:
+    name: "Qwen3-Coder-30B-A3B"
+    description: "Best coding model - MoE 30B/3B active"
+    cmd: podman compose up qwen-coder-30b
+    cmdStop: podman compose stop qwen-coder-30b
+    proxy: http://qwen-coder-30b:8130
+    ttl: 900
+    aliases: ["coder", "coding", "code", "dev", "default"]
+
   # Large uncensored model
   heretic-gpt-oss-120b:
     name: "Heretic-GPT-OSS-120B"
     description: "Large uncensored general model"
-    #cmd: >
-    #  ${kyuz0-rocm7}
-    #  ${llama-server-chat}
-    #  ${heretic-gpt-oss-120b-model}
-    cmd: podman compose up gpt-120b
-    #cmdStop: "podman stop -t 30 rocm7-${PORT}"
-    cmdStop: podman compose stop gpt-120b
-    #proxy: http://127.0.0.1:8120
-    proxy: http://gpt-120b:8120
+    cmd: podman compose up heretic-gpt-oss-120b
+    cmdStop: podman compose stop heretic-gpt-oss-120b
+    proxy: http://heretic-gpt-oss-120b:8120
     ttl: 600
-    aliases: ["heretic", "uncensored", "gpt-oss"]
+    aliases: ["heretic", "uncensored", "gpt-oss", "gpt-120b"]
 
   # --------------------------------------------------------------------------------
   # Jesse's Mess #4
