@@ -1,0 +1,207 @@
+volumes:
+  chroma-data:
+  openwebui-data:
+  perplexica-data:
+    driver: local
+  perplexica-uploads:
+    driver: local
+
+services:
+  searxng:
+    image: docker.io/searxng/searxng:latest
+    #container_name: searxng
+    ports:
+      - "8185:8080"
+    volumes:
+      - ./searxng:/etc/searxng:Z
+    #restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/usr/sbin/wget", "-q", "--spider", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  perplexica:
+    # tag `latest` has a builtin SearxNG
+    # tag `slim-latest` doesn't
+    image: docker.io/itzcrazykns1337/perplexica:slim-latest
+    #container_name: perplexica
+    #network_mode: host
+    volumes:
+      - perplexica-data:/home/perplexica/data:Z
+      - perplexica-uploads:/home/perplexica/uploads:Z
+    environment:
+      - SEARXNG_API_URL=http://searxng:8080
+      - PORT=3001
+      - HOSTNAME=0.0.0.0
+    #restart: unless-stopped
+    ports:
+      - "3001:3001"
+    depends_on:
+      - searxng
+
+  llama-swap:
+    # vulkan for AMD Strix Halo
+    build: llama-swap
+    #image: ghcr.io/mostlygeek/llama-swap:vulkan-non-root
+    image: berne/llama-swap:vulkan-non-root
+    #user: "1000:1000"
+    userns_mode: keep-id
+    # This is `ubuntu` user rather than `app` user.
+    # Samne UID as me, so my podman socket should work.
+    #user: "1000:1000"
+    user: bdawg
+    environment:
+      #HOME: /home/ubuntu
+      HOME: /home/bdawg
+      CONTAINER_HOST: unix:///run/user/1000/podman/podman.sock
+    # configuration hot reload supported with a directory volume mount
+    #command: >-
+    #  -config /config/config.yaml
+    #  -watch-config
+    #image: ghcr.io/mostlygeek/llama-swap:vulkan-non-root
+    devices:
+      # Direct Rendering Infrastructure (dri) - exposes renderer nodes (renderD128) and compute shaders, used by Vulkan/Mesa
+      - /dev/dri:/dev/dri
+      # Kernel Fusion Driver (kfd) - primary compute interface - essential for HIP/ROCm
+      - /dev/kfd:/dev/kfd
+    group_add:
+      # Unable to find group render: no matching entries in group file
+      #- render
+      - video
+      - app
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+      - label=disable
+    ports:
+      - 8090:8080
+    working_dir: /llama-swap
+    command: llama-swap -config config.yaml
+    volumes:
+      - ./llama-swap/config.yaml:/app/config.yaml:Z
+    #  - ./config:/config
+      - ${XDG_RUNTIME_DIR}/podman:/run/user/1000/podman:Z
+      # The parent directory needs to match the host as docker-compose bases the container names off it
+      - ./docker-compose.yml:/llama-swap/docker-compose.yml:ro
+      #- ./models:/models:Z
+      # Don't needed to mount as podman (compose) is doing bind mounts from hosts point of view
+      # But the `~` in the docker-compose.yml (this file) should match in the container and host (e.g. `bdawg`)
+      #- ~/.cache/huggingface:/huggingface:ro
+
+
+  # Not really needed, llama-server has a build in web UI that's nearly as good.
+  # OpenWebUI takes about 813MiB of RAM
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    profiles:
+      - open-webui
+    #network_mode: host
+    #container_name: open-webui
+    ports:
+      - 8080:8080
+    volumes:
+      - openwebui-data:/app/backend/data:Z
+    environment:
+      #OPENAI_API_BASE_URLS: http://localhost:8090/v1
+      OPENAI_API_BASE_URLS: http://llama-swap:8080/v1
+      OPENAI_API_KEYS: sk-llamaswap
+      #RAG_EMBEDDING_ENGINE: openai
+      #RAG_EMBEDDING_MODEL: bge-embed
+      #RAG_OPENAI_API_BASE_URL: http://localhost:8090/v1
+      #RAG_OPENAI_API_KEY: sk-llamaswap
+      #RAG_RERANKING_ENGINE: external
+      #RAG_RERANKING_MODEL: bge-rerank
+      #RAG_EXTERNAL_RERANKER_URL: http://localhost:10002/v1/rerank
+      #RAG_EXTERNAL_RERANKER_API_KEY: sk-llamaswap
+      #ENABLE_RAG_WEB_SEARCH: "true"
+      #RAG_WEB_SEARCH_ENGINE: searxng
+      #SEARXNG_QUERY_URL: http://localhost:8085/search?q=<query>
+      ENABLE_OLLAMA_API: "false"
+    restart: unless-stopped
+
+
+  # huggingface CLI
+  # Use to download models
+  # TODO: Capture downloading the models as code
+  huggingface:
+    userns_mode: keep-id
+    profiles:
+      - huggingface
+    build: huggingface
+    image: berne/huggingface
+    #command: >-
+    #  hf download bartowski/kldzj_gpt-oss-120b-heretic-GGUF/tree/main/kldzj_gpt-oss-120b-heretic-bf16
+    volumes:
+      - ~/.cache/huggingface:/home/bdawg/.cache/huggingface:Z
+      #- ./models:/models:Z
+
+  mistral-vibe:
+    profiles:
+      - mistral-vibe
+    build: mistral-vibe
+    image: berne/mistral-vibe
+
+
+  # --------------------------------------------------------------------------------
+  # Models
+  # --------------------------------------------------------------------------------
+
+  # large uncensored model
+  # bdawg: Would Q8_0 be better? The GPU has bf16: 0
+  gpt-120b:
+    profiles:
+      - gpt-120b
+    image: docker.io/kyuz0/amd-strix-halo-toolboxes:vulkan-radv
+    command: >-
+      llama-server
+      --host 0.0.0.0
+      --port 8120
+      -ngl 999
+      --cont-batching
+      -np 1
+      --no-warmup
+      --context-shift
+      --flash-attn on
+      -m /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
+      --ctx-size 32768
+      --temp 0.3
+      --top-p 0.95
+      --min-p 0.05
+      --typical 0.95
+    # Jesse's mess 4 settings
+    #  -m /huggingface/gpt-oss-120b/gpt-oss-120b-Q4_K_M-00001-of-00002.gguf
+    #  -np 4
+    #  --no-mmap
+    #
+    # Jesse: Chat models need jinja + reasoning
+    # llama-server-chat
+    #  --jinja
+    #  --reasoning-format auto
+    ports:
+      - 8120:8120
+    devices:
+      # Direct Rendering Infrastructure (dri) - exposes renderer nodes (renderD128) and compute shaders, used by Vulkan/Mesa
+      - /dev/dri:/dev/dri
+      # Kernel Fusion Driver (kfd) - primary compute interface - essential for HIP/ROCm
+      - /dev/kfd:/dev/kfd
+    group_add:
+      - render
+      - video
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+      - label=disable
+    environment:
+      #LLAMA_CACHE: /models
+      GGML_VERBOSE: 1
+      # Jesse: Do NOT set `HSA_OVERRIDE_GFX_VERSION` - causes kernel mismatches on Strix Halo
+      #HSA_OVERRIDE_GFX_VERSION: 11.0.2
+      ROCBLAS_LAYER: 4
+      # Jesse: in ROCm containers to prevent DMA issues
+      HSA_ENABLE_SDMA: 0
+    volumes:
+      #- ./models:/models:Z
+      - ~/.cache/huggingface:/huggingface:ro
+
+    # XXX TODO Add more models - see Jesse's llama-swap config

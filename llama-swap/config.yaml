@@ -1,0 +1,262 @@
+startPort: 10001
+healthCheckTimeout: 600
+logLevel: debug
+metricsMaxInMemory: 1000
+
+macros:
+  # Shared model storage
+  #models-path: /models
+
+  ## Base Podman runtime for all Strix Halo containers
+  #kyuz0-common: >
+  #  podman run --rm
+  #  --network=host
+  #  --device=/dev/kfd
+  #  --device=/dev/dri
+  #  --security-opt=label=disable
+  #  --group-add=video
+  #  --group-add=render
+  #  -v /sys:/sys:ro
+  #  -v /dev:/dev
+  #  -v /home/von/ai-models:/models:rw,Z
+  #  -e "LLAMA_CACHE=/models"
+  #  -e "GGML_VERBOSE=1"
+  #  -e "HSA_OVERRIDE_GFX_VERSION=11.0.2"
+  #  -e "ROCBLAS_LAYER=4"
+
+  ## Backend types
+  #kyuz0-vulkan: >
+  #  ${kyuz0-common}
+  #  --name vulkan-${PORT}
+  #  docker.io/kyuz0/amd-strix-halo-toolboxes:vulkan-radv
+
+  #kyuz0-rocm6: >
+  #  ${kyuz0-common}
+  #  --name rocm6-${PORT}
+  #  -e "ROCBLAS_USE_HIPBLASLT=1"
+  #  docker.io/kyuz0/amd-strix-halo-toolboxes:rocm-6.4.4-rocwmma
+
+  #kyuz0-rocm7: >
+  #  ${kyuz0-common}
+  #  --name rocm7-${PORT}
+  #  -e "ROCBLAS_USE_HIPBLASLT=1"
+  #  docker.io/kyuz0/amd-strix-halo-toolboxes:rocm-7.1-rocwmma
+
+  ## Common llama-server flags
+  #llama-server-base: >
+  #  llama-server
+  #  --host 0.0.0.0
+  #  --port ${PORT}
+  #  -ngl 999
+  #  --cont-batching
+  #  --no-mmap
+  #  -np 4
+  #  --jinja
+  #  --reasoning-format auto
+
+  ## Model macros
+  #gpt-120b-model: >
+  #  -m /models/gpt-oss-120b/gpt-oss-120b-Q4_K_M-00001-of-00002.gguf
+  #  --ctx-size 32768
+  #  --temp 0.7
+  #  --top-p 0.95
+  #  --min-p 0.05
+  #  --typical 0.95
+
+  #gemma-27b-model: >
+  #  -m /models/gemma-3-27b/bartowski_google_gemma-3-27b-it-GGUF_google_gemma-3-27b-it-Q8_0.gguf
+  #  --ctx-size 65536
+  #  --temp 0.7
+  #  -ngl 999
+  #  -fa 1
+
+  #qwen-coder-30b-model: >
+  #  -m /models/qwen3-coder-30b/unsloth_Qwen3-Coder-30B-A3B-Instruct-GGUF_Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf
+  #  --ctx-size 65536
+  #  --top-k 20
+  #  --top-p 0.8
+  #  --min-p 0.01
+  #  --temp 0.7
+  #  --repeat-penalty 1.05
+
+  #embed-bge-model: >
+  #  -m /models/bge-m3/gpustack_bge-m3-GGUF_bge-m3-Q8_0.gguf
+  #  --embedding
+  #  --pooling cls
+  #  --ctx-size 8192
+  #  --batch-size 512
+  #  --ubatch-size 512
+
+  #reranker-bge-model: >
+  #  -m /models/bge-reranker-m3/Felladrin_gguf-Q8_0-bge-reranker-v2-m3_bge-reranker-v2-m3-q8_0.gguf
+  #  --rerank
+  #  --ctx-size 65536
+  #  --batch-size 4096
+  #  --ubatch-size 4096
+
+  #granite-docling-model: >
+  #  -m /models/granite-docling/ibm-granite_granite-docling-258M-GGUF_granite-docling-258M-BF16.gguf
+  #  --ctx-size 65536
+  #  --batch-size 4096
+  #  --ubatch-size 4096
+
+  #vision-qwen-model: >
+  #  -m /models/qwen3-vl-8b/Qwen_Qwen3-VL-8B-Instruct-GGUF_Qwen3VL-8B-Instruct-Q8_0.gguf
+  #  --ctx-size 8192
+  #  --temp 0.7
+  #  --top-k 20
+  #  --top-p 0.8
+  #  -n 2048
+
+  #qwen-4b-model: >
+  #  -m /models/qwen3-4b-128k/unsloth_Qwen3-4B-128K-GGUF_Qwen3-4B-128K-UD-Q6_K_XL.gguf
+  #  --ctx-size 16384
+  #  --temp 0.7
+  #  --top-k 20
+  #  --top-p 0.8
+  #  --min-p 0.01
+  #  --repeat-penalty 1.05
+
+
+models:
+  # --------------------------------------------------------------------------------
+  # Jesse's framework-ai-cachyos
+  # --------------------------------------------------------------------------------
+
+  # Large uncensored model
+  heretic-gpt-oss-120b:
+    name: "Heretic-GPT-OSS-120B"
+    description: "Large uncensored general model"
+    #cmd: >
+    #  ${kyuz0-rocm7}
+    #  ${llama-server-chat}
+    #  ${heretic-gpt-oss-120b-model}
+    cmd: podman compose up gpt-120b
+    #cmdStop: "podman stop -t 30 rocm7-${PORT}"
+    cmdStop: podman compose stop gpt-120b
+    #proxy: http://127.0.0.1:8120
+    proxy: http://gpt-120b:8120
+    ttl: 600
+    aliases: ["heretic", "uncensored", "gpt-oss"]
+
+  # --------------------------------------------------------------------------------
+  # Jesse's Mess #4
+  # --------------------------------------------------------------------------------
+  #
+  #gpt-120b:
+  #  name: "GPT-OSS-120B"
+  #  description: "Large reasoning model"
+  #  cmd: podman compose run --rm -it gpt-120b
+  #  #  ${kyuz0-vulkan}
+  #  #  ${llama-server-base}
+  #  #  ${gpt-120b-model}
+  #  #cmdStop: "podman stop -t 30 vulkan-${PORT}"
+  #  cmdStop: podman compose stop gpt-120b
+  #  ttl: 3600
+  #  aliases: ["gpt-4", "default", "main", "reasoning"]
+
+  #gemma-27b:
+  #  name: "Gemma-3-27B-Instruct"
+  #  description: "Fast 27B coding/general"
+  #  cmd: >
+  #    ${kyuz0-vulkan}
+  #    ${llama-server-base}
+  #    ${gemma-27b-model}
+  #  cmdStop: "podman stop -t 30 vulkan-${PORT}"
+  #  ttl: 1800
+  #  aliases: ["gemma", "fast"]
+
+  #qwen-coder-30b:
+  #  name: "Qwen3-Coder-30B"
+  #  description: "Dedicated coding model"
+  #  cmd: >
+  #    ${kyuz0-rocm7}
+  #    ${llama-server-base}
+  #    ${qwen-coder-30b-model}
+  #  cmdStop: "podman stop -t 30 rocm7-${PORT}"
+  #  ttl: 1800
+  #  aliases: ["coder", "dev"]
+
+  #bge-embed:
+  #  name: "BGE-M3"
+  #  description: "Embedding model (RAG)"
+  #  cmd: >
+  #    ${kyuz0-vulkan}
+  #    ${llama-server-base}
+  #    ${embed-bge-model}
+  #  cmdStop: "podman stop -t 10 vulkan-${PORT}"
+  #  ttl: 0
+  #  aliases: ["embed"]
+
+  #bge-rerank:
+  #  name: "BGE-Reranker-v2-M3"
+  #  description: "Reranker (RAG)"
+  #  cmd: >
+  #    ${kyuz0-vulkan}
+  #    ${llama-server-base}
+  #    ${reranker-bge-model}
+  #  cmdStop: "podman stop -t 10 vulkan-${PORT}"
+  #  ttl: 0
+  #  aliases: ["rerank"]
+
+  #granite-docling:
+  #  name: "Granite-Docling-258M"
+  #  description: "Document parsing (PDF/Doc)"
+  #  cmd: >
+  #    ${kyuz0-vulkan}
+  #    ${llama-server-base}
+  #    ${granite-docling-model}
+  #  cmdStop: "podman stop -t 10 vulkan-${PORT}"
+  #  ttl: 0
+  #  aliases: ["docling", "pdf"]
+
+  #qwen-vision:
+  #  name: "Qwen3-VL-8B"
+  #  description: "Vision + text"
+  #  cmd: >
+  #    ${kyuz0-vulkan}
+  #    ${llama-server-base}
+  #    ${vision-qwen-model}
+  #  cmdStop: "podman stop -t 20 vulkan-${PORT}"
+  #  ttl: 0
+  #  aliases: ["vision"]
+
+  #qwen-4b:
+  #  name: "Qwen3-4B-128K"
+  #  description: "Small ultra-fast model"
+  #  cmd: >
+  #    ${kyuz0-vulkan}
+  #    ${llama-server-base}
+  #    ${qwen-4b-model}
+  #  cmdStop: "podman stop -t 10 vulkan-${PORT}"
+  #  ttl: 0
+  #  aliases: ["small", "instant"]
+
+#groups:
+#  main:
+#    swap: true
+#    exclusive: false
+#    members:
+#      - "gpt-120b"
+#      - "gemma-27b"
+#      - "qwen-coder-30b"
+#
+#  forever:
+#    persistent: true
+#    swap: false
+#    exclusive: false
+#    members:
+#      - "bge-embed"
+#      - "bge-rerank"
+#      - "granite-docling"
+#      - "qwen-vision"
+#      - "qwen-4b"
+
+#hooks:
+#  on_startup:
+#    preload:
+#      - "bge-embed"
+#      - "bge-rerank"
+#      - "granite-docling"
+#      - "qwen-vision"
+#      - "qwen-4b"
