@@ -132,17 +132,17 @@ services:
   # huggingface CLI
   # Use to download models
   # TODO: Capture downloading the models as code
-  huggingface:
+  facehugger:
     userns_mode: keep-id
     profiles:
-      - huggingface
-    build: huggingface
-    image: berne/huggingface
+      - facehugger
+      - bootstrap
+    image: berne/facehugger
     #command: >-
     #  hf download bartowski/kldzj_gpt-oss-120b-heretic-GGUF/tree/main/kldzj_gpt-oss-120b-heretic-bf16
     volumes:
       - ~/.cache/huggingface:/home/bdawg/.cache/huggingface:Z
-      #- ./models:/models:Z
+      - ./facehugger/facehugger.yaml:/facehugger.yaml
 
 
   mistral-vibe:

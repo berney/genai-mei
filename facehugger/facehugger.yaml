@@ -1,7 +1,7 @@
-# huggingface lock file
+# facehugger Huggingface Manifest file
 #
 # This file defines model repositories and optional include/exclude/ref settings.
-# The `download-models` python module parses this file and does the equivalent of `hf download <repo> [--include <pattern>] [--exclude <pattern>] [--revision <ref>]` for each model.
+# The `facehugger` python module parses this file and does the equivalent of `hf download <repo> [--include <pattern>] [--exclude <pattern>] [--revision <ref>]` for each model.
 #
 #
 # Example lock file:
@@ -28,6 +28,10 @@ models:
 
   - repo: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF
     include: Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
+
+  - repo: unsloth/GLM-4.7-Flash-GGUF
+    include: GLM-4.7-Flash-UD-Q8_K_XL.gguf
+
 
   #- repo: deepseek-ai/DeepSeek-R1
   #  include: DeepSeek-R1-Distill-Llama-70B-Q4_K_M.gguf
