@@ -173,7 +173,7 @@ services:
       - seccomp:unconfined
       - apparmor:unconfined
       - label=disable
-    environment:
+    environment: &model-base-env
       #LLAMA_CACHE: /models
       GGML_VERBOSE: 1
       # Jesse: Do NOT set `HSA_OVERRIDE_GFX_VERSION` - causes kernel mismatches on Strix Halo
@@ -181,7 +181,7 @@ services:
       ROCBLAS_LAYER: 4
       # Jesse: in ROCm containers to prevent DMA issues
       HSA_ENABLE_SDMA: 0
-      MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
+      LLAMA_ARG_MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
     volumes:
       #- ./models:/models:Z
       - ~/.cache/huggingface:/huggingface:ro
@@ -190,25 +190,30 @@ services:
     <<: *model-base
     profiles:
       - x-model
+    # FML not all arguments have env var equivalents: warmup, temp, top-p, min-p, typical
     command: >-
-      llama-server-wrapper
-      --host 0.0.0.0
-      -ngl 999
-      --cont-batching
-      -np 1
+      llama-server
       --no-warmup
-      --context-shift
-      --flash-attn on
-      --ctx-size 32768
       --temp 0.3
       --top-p 0.95
       --min-p 0.05
       --typical 0.95
+    environment: &model-env
+      <<: *model-base-env
+      LLAMA_ARG_FLASH_ATTN: auto
+      LLAMA_ARG_HOST: 0.0.0.0
+      LLAMA_ARG_CONT_BATCHING: on
+      LLAMA_ARG_N_PARALLEL: 1
+      LLAMA_ARG_N_GPU_LAYERS: all
+      LLAMA_ARG_CONTEXT_SHIFT: on
+      LLAMA_ARG_CTX_SIZE: 32768
+
 
   x-model-benchmark: &model-benchmark
     <<: *model-base
     profiles:
       - x-model-benchmark
+    # Use wrapper so we can use env var LLAMA_ARG_MODEL
     command: >-
       llama-bench-wrapper
       -ngl 999
@@ -224,8 +229,9 @@ services:
     profiles:
       - model-heretic-gpt-oss-120b
     environment: &heretic-gpt-oss-120b-env
-      MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
-      PORT: 8120
+      <<: *model-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
+      LLAMA_ARG_PORT: 8120
     ports:
       - 8120:8120
 
@@ -237,12 +243,12 @@ services:
     environment:
       <<: *heretic-gpt-oss-120b-env
 
-  # primary coding model
   qwen-coder-30b:
     <<: *model
     environment: &qwen-coder-30b-env
-      MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-30B-A3B-Instruct-GGUF/snapshots/7ce945e58ed3f09f9cf9c33a2122d86ac979b457/Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
-      PORT: 8130
+      <<: *model-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-30B-A3B-Instruct-GGUF/snapshots/7ce945e58ed3f09f9cf9c33a2122d86ac979b457/Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
+      LLAMA_ARG_PORT: 8130
     ports:
       - 8130:8130
 
@@ -253,6 +259,34 @@ services:
       - benchmark
     environment:
       <<: *qwen-coder-30b-env
+
+  # primary coding model
+  glm-4.7-flash:
+    <<: *model
+    command: &coder-env >-
+      llama-server
+      --no-warmup
+      --temp 0.3
+      --top-p 1.0
+      --min-p 0.01
+      --typical 0.95
+      --repeat-penalty 1.0
+    environment: &glm-4.7-flash-env
+      <<: *model-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--GLM-4.7-Flash-GGUF/snapshots/66205ea11ef638d83850389bd921e6c199f7504e/GLM-4.7-Flash-UD-Q8_K_XL.gguf
+      LLAMA_ARG_PORT: 8140
+    ports:
+      - 8140:8140
+
+  glm-4.7-flash-benchmark:
+    <<: *model-benchmark
+    profiles:
+      - glm-4.7-flash-benchmark
+      - benchmark
+    # No env vars for several options
+    # https://unsloth.ai/docs/models/glm-4.7-flash
+    environment:
+      <<: *glm-4.7-flash-env
 
 
     # XXX TODO Add more models - see Jesse's llama-swap config

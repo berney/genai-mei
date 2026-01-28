@@ -130,7 +130,8 @@ models:
     cmdStop: podman compose stop qwen-coder-30b
     proxy: http://qwen-coder-30b:8130
     ttl: 900
-    aliases: ["coder", "coding", "code", "dev", "default"]
+    #aliases: ["coder", "coding", "code", "dev", "default"]
+    aliases: ["qwen3", "qwen3-coder"]
 
   # Large uncensored model
   heretic-gpt-oss-120b:
@@ -141,6 +142,22 @@ models:
     proxy: http://heretic-gpt-oss-120b:8120
     ttl: 600
     aliases: ["heretic", "uncensored", "gpt-oss", "gpt-120b"]
+
+
+  # --------------------------------------------------------------------------------
+  # New
+  # --------------------------------------------------------------------------------
+  glm-4.7-flash:
+    name: "unsloth/GLM-4.7-Flash-GGUF"
+    description: |
+      GLM-4.7-Flash is a 30B-A3B MoE model.
+      As the strongest model in the 30B class, GLM-4.7-Flash offers a new option for lightweight deployment that balances performance and efficiency.
+    cmd: podman compose up glm-4.7-flash
+    cmdStop: podman compose stop glm-4.7-flash
+    proxy: http://glm-4.7-flash:8140
+    ttl: 3600
+    aliases: ["glm", "glm-4.7", "coding", "coder", "code", "dev", "default"]
+
 
   # --------------------------------------------------------------------------------
   # Jesse's Mess #4
