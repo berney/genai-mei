@@ -303,6 +303,27 @@ genai-mei/
 * Built on a podman system.
   Intend in future to support docker engine, but some changes probably needed atm to get it working.
 
+### Diagram
+
+```mermaid
+C4Container
+    title Docker‑Compose System (C4 Container View)
+
+    Person(conduit, "Conduit", "Mobile app used by end‑users")
+    System_Boundary(dockerCompose, "Docker‑Compose Stack") {
+        Container(openWebUI, "open‑webui", "Web UI", "Provides a chat UI for LLM interaction")
+        Container(llamaSwap, "llama‑swap", "Router / Orchestrator", "Starts/stops and routes requests to the model container")
+        Container(modelXXX, "model‑xxx", "LLM Model", "The actual language model (e.g. Llama‑3.1‑70B)")
+        Container(perplexica, "perplexica", "Search‑augmented LLM", "Adds web‑search context to LLM responses")
+        Container(searxng, "searxng", "Meta‑search Engine", "Aggregates search results from many back‑ends")
+    }
+
+    Rel(conduit, openWebUI, "HTTP/HTTPS", "Uses the UI")
+    Rel(openWebUI, llamaSwap, "HTTP/REST", "Sends inference requests")
+    Rel(perplexica, llamaSwap, "HTTP/REST", "Sends inference requests")
+    Rel(llamaSwap, modelXXX, "gRPC / HTTP", "Starts/stops & routes to the model")
+    Rel(perplexica, searxng, "HTTP/REST", "Queries for web‑search results")
+```
 
 
 ## Contributing

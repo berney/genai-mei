@@ -54,7 +54,7 @@ services:
     #user: "1000:1000"
     userns_mode: keep-id
     # This is `ubuntu` user rather than `app` user.
-    # Samne UID as me, so my podman socket should work.
+    # Same UID as me, so my podman socket should work.
     #user: "1000:1000"
     user: bdawg
     environment:
@@ -125,8 +125,8 @@ services:
       #SEARXNG_QUERY_URL: http://localhost:8085/search?q=<query>
       ENABLE_OLLAMA_API: "false"
     #restart: unless-stopped
-    depends_on:
-      - llama-swap
+    #depends_on:
+    #  - llama-swap
 
 
   # huggingface CLI
@@ -275,6 +275,7 @@ services:
       <<: *model-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--GLM-4.7-Flash-GGUF/snapshots/66205ea11ef638d83850389bd921e6c199f7504e/GLM-4.7-Flash-UD-Q8_K_XL.gguf
       LLAMA_ARG_PORT: 8140
+      LLAMA_ARG_CTX_SIZE: 202752
     ports:
       - 8140:8140
 
