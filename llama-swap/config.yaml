@@ -123,26 +123,55 @@ models:
   # Jesse's framework-ai-cachyos
   # --------------------------------------------------------------------------------
 
-  qwen-coder-30b:
-    name: "Qwen3-Coder-30B-A3B"
-    description: "Best coding model - MoE 30B/3B active"
-    cmd: podman compose up qwen-coder-30b
-    cmdStop: podman compose stop qwen-coder-30b
-    proxy: http://qwen-coder-30b:8130
-    ttl: 900
-    #aliases: ["coder", "coding", "code", "dev", "default"]
-    aliases: ["qwen3", "qwen3-coder"]
-
   # Large uncensored model
   heretic-gpt-oss-120b:
     name: "Heretic-GPT-OSS-120B"
     description: "Large uncensored general model"
     cmd: podman compose up heretic-gpt-oss-120b
     cmdStop: podman compose stop heretic-gpt-oss-120b
-    proxy: http://heretic-gpt-oss-120b:8120
+    proxy: http://heretic-gpt-oss-120b:8080
     ttl: 600
     aliases: ["heretic", "uncensored", "gpt-oss", "gpt-120b"]
 
+  heretic-gpt-oss-120b-q8:
+    name: "Heretic-GPT-OSS-120B-Q8_0"
+    description: "Large uncensored general model"
+    cmd: podman compose up heretic-gpt-oss-120b-q8
+    cmdStop: podman compose stop heretic-gpt-oss-120b-q8
+    proxy: http://heretic-gpt-oss-120b-q8:8080
+    ttl: 600
+    aliases: ["heretic-q8", "uncensored-q8", "gpt-oss-q8", "gpt-120b-8q"]
+
+  qwen-coder-30b:
+    name: "Qwen3-Coder-30B-A3B"
+    description: "Best coding model - MoE 30B/3B active"
+    cmd: podman compose up qwen-coder-30b
+    cmdStop: podman compose stop qwen-coder-30b
+    proxy: http://qwen-coder-30b:8080
+    ttl: 900
+    #aliases: ["coder", "coding", "code", "dev", "default"]
+    aliases: ["qwen3", "qwen3-coder"]
+
+  # ================= Always-on Models =================
+  # Jesse is using Q6_K_XL
+  qwen-4b-q6:
+    name: "Qwen3-4B-128K-Q6_K_XL"
+    description: "Fast small model for quick tasks"
+    cmd: podman compose up qwen3-4b-128k-q6
+    cmdStop: podman compose stop qwen3-4b-128k-q6
+    proxy: http://qwen3-4b-128k-q6:8080
+    ttl: 0
+    aliases: ["small-q6", "fast-q6", "quick-q6", "instant-q6"]
+
+  # I want to test Q8_K_XL
+  qwen-4b-q8:
+    name: "Qwen3-4B-128K-Q8_K_XL"
+    description: "Fast small model for quick tasks"
+    cmd: podman compose up qwen3-4b-128k-q8
+    cmdStop: podman compose stop qwen3-4b-128k-q8
+    proxy: http://qwen3-4b-128k-q8:8080
+    ttl: 0
+    aliases: ["small", "fast", "quick", "instant"]
 
   # --------------------------------------------------------------------------------
   # New
@@ -154,7 +183,7 @@ models:
       As the strongest model in the 30B class, GLM-4.7-Flash offers a new option for lightweight deployment that balances performance and efficiency.
     cmd: podman compose up glm-4.7-flash
     cmdStop: podman compose stop glm-4.7-flash
-    proxy: http://glm-4.7-flash:8140
+    proxy: http://glm-4.7-flash:8080
     ttl: 3600
     aliases: ["glm", "glm-4.7", "coding", "coder", "code", "dev", "default"]
 

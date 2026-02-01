@@ -221,6 +221,64 @@ docker compose run --rm gpt-120b-benchmark
 | `-t` | CPU threads |
 
 
+### Results (2026-02-01)
+
+```
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+build: 785a71008 (7751)
+```
+
+#### heretic-gpt-oss-120b-benchmark
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           pp512 |       397.06 ± 63.81 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp1024 |        415.94 ± 3.55 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp2048 |        403.22 ± 7.22 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           tg128 |         33.21 ± 0.14 |
+
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |           pp512 |       456.17 ± 80.81 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |          pp1024 |        481.15 ± 5.39 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |          pp2048 |       460.40 ± 10.75 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |           tg128 |         51.94 ± 0.42 |
+
+#### qwen-coder-30b-benchmark
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |           pp512 |      884.78 ± 289.41 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |          pp1024 |        898.51 ± 9.74 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |          pp2048 |       832.07 ± 26.59 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |           tg128 |         56.82 ± 0.44 |
+
+
+#### qwen3-4b-128k-q6-benchmark
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |           pp512 |     1397.98 ± 526.46 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |          pp1024 |      1391.30 ± 14.13 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |          pp2048 |      1252.43 ± 79.78 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |           tg128 |         53.54 ± 0.92 |
+
+
+#### qwen3-4b-128k-q8-benchmark
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen3 4B Q8_0                  |   4.70 GiB |     4.02 B | Vulkan     | 999 |           pp512 |     1347.67 ± 489.56 |
+| qwen3 4B Q8_0                  |   4.70 GiB |     4.02 B | Vulkan     | 999 |          pp1024 |      1327.16 ± 19.00 |
+| qwen3 4B Q8_0                  |   4.70 GiB |     4.02 B | Vulkan     | 999 |          pp2048 |      1204.72 ± 65.33 |
+| qwen3 4B Q8_0                  |   4.70 GiB |     4.02 B | Vulkan     | 999 |           tg128 |         39.77 ± 0.42 |
+
+#### glm-4.7-flash-benchmark
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| deepseek2 ?B Q8_0              |  32.70 GiB |    29.94 B | Vulkan     | 999 |           pp512 |      784.96 ± 196.90 |
+| deepseek2 ?B Q8_0              |  32.70 GiB |    29.94 B | Vulkan     | 999 |          pp1024 |       802.44 ± 10.79 |
+| deepseek2 ?B Q8_0              |  32.70 GiB |    29.94 B | Vulkan     | 999 |          pp2048 |       721.81 ± 21.81 |
+| deepseek2 ?B Q8_0              |  32.70 GiB |    29.94 B | Vulkan     | 999 |           tg128 |         38.06 ± 0.20 |
+
+
 ### Results (2026-01-28)
 
 ```

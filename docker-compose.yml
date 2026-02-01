@@ -138,6 +138,9 @@ services:
       - facehugger
       - bootstrap
     image: berne/facehugger
+    entrypoint: facehugger
+    command: ""
+    #command: [""]
     #command: >-
     #  hf download bartowski/kldzj_gpt-oss-120b-heretic-GGUF/tree/main/kldzj_gpt-oss-120b-heretic-bf16
     volumes:
@@ -231,9 +234,9 @@ services:
     environment: &heretic-gpt-oss-120b-env
       <<: *model-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
-      LLAMA_ARG_PORT: 8120
+      #LLAMA_ARG_PORT: 8120
     ports:
-      - 8120:8120
+      - 8120:8080
 
   heretic-gpt-oss-120b-benchmark:
     <<: *model-benchmark
@@ -243,14 +246,34 @@ services:
     environment:
       <<: *heretic-gpt-oss-120b-env
 
+  heretic-gpt-oss-120b-q8:
+    <<: *model
+    profiles:
+      - model-heretic-gpt-oss-120b-q8
+    environment: &heretic-gpt-oss-120b-q8-env
+      <<: *model-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-Q8_0/kldzj_gpt-oss-120b-heretic-Q8_0-00001-of-00002.gguf
+      # default is 8080
+      #LLAMA_ARG_PORT: 8120
+    ports:
+      - 8121:8080
+
+  heretic-gpt-oss-120b-q8-benchmark:
+    <<: *model-benchmark
+    profiles:
+      - heretic-gpt-oss-120b-q8-benchmark
+      - benchmark
+    environment:
+      <<: *heretic-gpt-oss-120b-q8-env
+
   qwen-coder-30b:
     <<: *model
     environment: &qwen-coder-30b-env
       <<: *model-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-30B-A3B-Instruct-GGUF/snapshots/7ce945e58ed3f09f9cf9c33a2122d86ac979b457/Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
-      LLAMA_ARG_PORT: 8130
+      #LLAMA_ARG_PORT: 8130
     ports:
-      - 8130:8130
+      - 8130:8080
 
   qwen-coder-30b-benchmark:
     <<: *model-benchmark
@@ -259,6 +282,40 @@ services:
       - benchmark
     environment:
       <<: *qwen-coder-30b-env
+
+  qwen3-4b-128k-q6:
+    <<: *model
+    environment: &qwen3-4b-128k-q6-env
+      <<: *model-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q6_K_XL.gguf
+      #LLAMA_ARG_PORT: 8140
+    ports:
+      - 8140:8080
+
+  qwen3-4b-128k-q6-benchmark:
+    <<: *model-benchmark
+    profiles:
+      - qwen3-4b-128k-q6-benchmark
+      - benchmark
+    environment:
+      <<: *qwen3-4b-128k-q6-env
+
+  qwen3-4b-128k-q8:
+    <<: *model
+    environment: &qwen3-4b-128k-q8-env
+      <<: *model-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q8_K_XL.gguf
+      #LLAMA_ARG_PORT: 8150
+    ports:
+      - 8150:8080
+
+  qwen3-4b-128k-q8-benchmark:
+    <<: *model-benchmark
+    profiles:
+      - qwen3-4b-128k-q8-benchmark
+      - benchmark
+    environment:
+      <<: *qwen3-4b-128k-q8-env
 
   # primary coding model
   glm-4.7-flash:
@@ -274,10 +331,10 @@ services:
     environment: &glm-4.7-flash-env
       <<: *model-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--GLM-4.7-Flash-GGUF/snapshots/66205ea11ef638d83850389bd921e6c199f7504e/GLM-4.7-Flash-UD-Q8_K_XL.gguf
-      LLAMA_ARG_PORT: 8140
+      #LLAMA_ARG_PORT: 8160
       LLAMA_ARG_CTX_SIZE: 202752
     ports:
-      - 8140:8140
+      - 8160:8080
 
   glm-4.7-flash-benchmark:
     <<: *model-benchmark

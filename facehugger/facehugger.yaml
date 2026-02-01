@@ -26,6 +26,7 @@ models:
   - repo: bartowski/kldzj_gpt-oss-120b-heretic-GGUF
     include: kldzj_gpt-oss-120b-heretic-bf16/*
 
+  # Jesse uses BF16, but I want to test Q8_0 because I think it will be faster on the Strix Halo
   - repo: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF
     include: Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
 
@@ -39,5 +40,12 @@ models:
   #  include: kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
   #- repo: meta-llama/Llama-4-Scout
   #  include: Llama-4-Scout-17B-16E-Instruct-Q4_K_M-00001-of-00002.gguf
-  #- repo: Qwen/Qwen3-4B-128K
-  #  include: unsloth_Qwen3-4B-128K-GGUF_Qwen3-4B-128K-UD-Q6_K_XL.gguf
+
+  # 128K means specially prepared version supporting 128K tokens natively via YaRN position encoding integration
+  # Jesse is using the Q6_K_XL quant - VonSnickety/framework-ai-cachyos
+  - repo: unsloth/Qwen3-4B-128K-GGUF
+    include: Qwen3-4B-128K-UD-Q6_K_XL.gguf
+  # I want to try the Q8_K_XL quant
+  - repo: unsloth/Qwen3-4B-128K-GGUF
+    include: Qwen3-4B-128K-UD-Q8_K_XL.gguf
+
