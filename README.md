@@ -3,10 +3,11 @@
 **genai-mei** is a collection of ready‑to‑run generative‑AI services packaged as Docker images and orchestrated with Docker‑Compose.
 The repository bundles a handful of popular models and utilities – LLaMA‑Swap, Perplexica, and a SearXNG search front‑end – providing a single, reproducible environment for experimenting with and deploying AI workloads.
 
-Heavily inspired by https://github.com/VonSnickety/framework-ai-cachyos
+Heavily inspired by https://github.com/VonSnickety/framework-ai-cachyos.
+Uses docker images created from https://github.com/kyuz0/amd-strix-halo-toolboxes.
 
 Optimized for AMD Strix Halo w/ Radeon 8060S (gfx1151).
-Runs 70B+ models using the 128GB unified memory.
+Runs 120B+ models using the 128GB unified memory.
 
 ---
 
@@ -56,14 +57,15 @@ All services expose HTTP APIs (or CLI entry points) that can be consumed by down
 
 
 
-## Hardware Requirements
+## Prerequisites
+### Hardware Requirements
 
 - **AMD Ryzen AI Max+ 395** (or other Strix Halo APU)
 - **128GB unified memory** (for large model inference)
 - Tested on Framework Desktop
 
 
-## Software Prerequisites
+### Software Prerequisites
 
 - Container runtime - Podamn API service (tested on Podman 5.7.1)
 - Docker‑Compose (v2 syntax)
@@ -87,13 +89,17 @@ amd_iommu=off            # Disable IOMMU (causes issues with ROCm)
 git clone https://github.com/berney/genai‑mei.git
 cd genai‑mei
 
-# Start all services (pulls and/or builds images)
+# Install models
+docker compose run --rm facehugger
+
+# Start default services
 docker compose up
 ```
 
 The command will:
 1. Pull, falling back to building, each Docker image from its respective `Dockerfile`.
-2. Start containers and expose the ports defined in `docker-compose.yml`.
+2. Use facehugger to download any missing models and verify the models integrity.
+3. Start containers and expose the ports defined in `docker-compose.yml`.
 
 You can verify that everything is running with:
 
@@ -117,7 +123,7 @@ Feel free to edit the file to change host ports or to add extra environment vari
 
 ### Service‑specific config files
 
-- **HuggingFace** – this is ran manually to get the `hf` CLI to download models, etc. used for bootstrapping.
+- **facehugger** – Used for bootstrapping and to add new models after editing the facehugger manifest `facehugger.yaml` file.
 - **LLaMA‑Swap** – configuration lives in `llama-swap/config.yaml` - this defines models available.
 - **Mistral‑Vibe** – primary settings are in `mistral-vibe/config.toml`.  Adjust the `model_path`, `api_key`, or logging options as needed.
 - **Perplexica** – The config file `perplexica/data/config.json` has the base URL for SearxNG. Chat history etc stored in `perplexica/data/` is not tracked by git.
@@ -220,6 +226,112 @@ docker compose run --rm gpt-120b-benchmark
 | `-fa` | Flash attention (1 = on) |
 | `-t` | CPU threads |
 
+
+### Results (2026-02-04)
+```
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+build: 6a9bf2f78 (7928)
+```
+
+```
+ggml_cuda_init: found 1 ROCm devices:
+  Device 0: Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32
+build: 6a9bf2f78 (7928)
+```
+
+#### heretic-gpt-oss-120b-benchmark - Vulkan RADV
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           pp512 |       365.29 ± 56.95 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp1024 |       402.12 ± 18.75 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp2048 |        408.57 ± 7.77 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           tg128 |         33.92 ± 0.27 |
+
+
+#### heretic-gpt-oss-120b-vulkan-amdvlk-benchmark - Vulkan AMDVLK
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           pp512 |       362.24 ± 60.31 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp1024 |       413.29 ± 11.31 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp2048 |        410.09 ± 6.28 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           tg128 |         33.93 ± 0.13 |
+
+
+#### heretic-gpt-oss-120b-rocm-6.4.4-benchmark - ROCm v6.4.4
+
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |           pp512 |       521.72 ± 86.65 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |          pp1024 |        543.77 ± 6.57 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |          pp2048 |        518.01 ± 5.87 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |           tg128 |         35.66 ± 0.04 |
+
+
+#### heretic-gpt-oss-120b-rocm-7.2-benchmark - ROCm v7.2
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |           pp512 |       167.90 ± 15.38 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |          pp1024 |        184.37 ± 3.24 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |          pp2048 |        182.95 ± 1.03 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |           tg128 |         36.09 ± 0.14 |
+
+
+#### heretic-gpt-oss-120b-rocm7-nightlies-benchmark - ROCm 7 Nightlies
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |           pp512 |        274.87 ± 6.01 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |          pp1024 |        272.50 ± 2.90 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |          pp2048 |        269.60 ± 1.18 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | ROCm       | 999 |           tg128 |         36.07 ± 0.04 |
+
+
+#### heretic-gpt-oss-120b-q8-benchmark - Vulkan RADV
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |           pp512 |       420.24 ± 67.99 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |          pp1024 |       459.69 ± 21.27 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |          pp2048 |        469.26 ± 9.69 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |           tg128 |         53.16 ± 0.69 |
+
+
+#### qwen3-4b-128k-q6-benchmark - Vulkan RADV
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |           pp512 |     1433.30 ± 585.34 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |          pp1024 |      1407.10 ± 10.17 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |          pp2048 |      1289.21 ± 51.65 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |           tg128 |         53.52 ± 0.55 |
+
+
+#### qwen3-4b-128k-q8-benchmark - Vulkan RADV
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen3 4B Q8_0                  |   4.70 GiB |     4.02 B | Vulkan     | 999 |           pp512 |     1362.02 ± 530.36 |
+| qwen3 4B Q8_0                  |   4.70 GiB |     4.02 B | Vulkan     | 999 |          pp1024 |       1344.74 ± 9.91 |
+| qwen3 4B Q8_0                  |   4.70 GiB |     4.02 B | Vulkan     | 999 |          pp2048 |      1227.25 ± 56.08 |
+| qwen3 4B Q8_0                  |   4.70 GiB |     4.02 B | Vulkan     | 999 |           tg128 |         39.88 ± 0.27 |
+
+
+#### qwen-coder-30b-benchmark - Vulkan RADV
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |           pp512 |      823.05 ± 273.96 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |          pp1024 |        849.62 ± 8.57 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |          pp2048 |       834.90 ± 45.81 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |           tg128 |         58.50 ± 0.29 |
+
+
+#### glm-4.7-flash-benchmark - Vulkan RADV
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| deepseek2 30B.A3B Q8_0         |  32.70 GiB |    29.94 B | Vulkan     | 999 |           pp512 |      782.68 ± 204.15 |
+| deepseek2 30B.A3B Q8_0         |  32.70 GiB |    29.94 B | Vulkan     | 999 |          pp1024 |        816.62 ± 6.17 |
+| deepseek2 30B.A3B Q8_0         |  32.70 GiB |    29.94 B | Vulkan     | 999 |          pp2048 |       740.43 ± 22.25 |
+| deepseek2 30B.A3B Q8_0         |  32.70 GiB |    29.94 B | Vulkan     | 999 |           tg128 |         38.68 ± 0.19 |
+
+
+----
 
 ### Results (2026-02-01)
 

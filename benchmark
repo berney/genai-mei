@@ -1,6 +1,6 @@
 #!/bin/sh
 
-for service in $(docker compose --profile benchmark config --services); do
+for service in $(docker compose --profile benchmark config --services | sort); do
     echo "#### $service";
     docker compose run --rm "$service";
     echo;

@@ -281,7 +281,7 @@ models:
   #  ttl: 0
   #  aliases: ["small", "instant"]
 
-#groups:
+groups:
 #  main:
 #    swap: true
 #    exclusive: false
@@ -290,22 +290,23 @@ models:
 #      - "gemma-27b"
 #      - "qwen-coder-30b"
 #
-#  forever:
-#    persistent: true
-#    swap: false
-#    exclusive: false
-#    members:
+  forever:
+    persistent: true
+    swap: false
+    exclusive: false
+    members:
 #      - "bge-embed"
 #      - "bge-rerank"
 #      - "granite-docling"
 #      - "qwen-vision"
-#      - "qwen-4b"
+      - "qwen-4b-q6"
+      #- "qwen-4b-q8"
 
-#hooks:
-#  on_startup:
-#    preload:
+hooks:
+  on_startup:
+    preload:
 #      - "bge-embed"
 #      - "bge-rerank"
 #      - "granite-docling"
 #      - "qwen-vision"
-#      - "qwen-4b"
+      - "qwen-4b-q8"
