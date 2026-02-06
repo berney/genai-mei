@@ -1,8 +1,33 @@
 #!/bin/sh
 
-for service in $(docker compose --profile benchmark config --services | sort); do
+DRY_RUN=false
+ARGS="$@"
+
+# Remove `--dry-run` from arguments if present
+if [ "$1" = "--dry-run" ]; then
+    DRY_RUN=true
+    shift
+fi
+
+# If arguments supplied
+if [ $# -gt 0 ]; then
+    # Use them to filter with ripgrep
+    SERVICES=$(docker compose --profile benchmark config --services | sort | rg "$@")
+else
+    SERVICES=$(docker compose --profile benchmark config --services | sort)
+fi
+
+DATETIME=$(date '+%Y-%m-%d-%H%M')
+DIR="benchmark-html/data/${DATETIME}"
+mkdir -p "${DIR}"
+
+for service in $(echo "$SERVICES"); do
     echo "#### $service";
-    docker compose run --rm "$service";
+    if [ "$DRY_RUN" = "true" ]; then
+        echo docker compose run --rm "$service";
+    else
+        docker compose run --rm "$service" > "${DIR}/${service}.json" 2>${DIR}/$service.log
+    fi
     echo;
 done
 
