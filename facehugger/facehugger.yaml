@@ -30,6 +30,9 @@ models:
   - repo: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF
     include: Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
 
+  - repo: unsloth/Qwen3-Coder-Next-GGUF
+    include: UD-Q8_K_XL/*
+
   - repo: unsloth/GLM-4.7-Flash-GGUF
     include: GLM-4.7-Flash-UD-Q8_K_XL.gguf
 
@@ -44,8 +47,7 @@ models:
   # 128K means specially prepared version supporting 128K tokens natively via YaRN position encoding integration
   # Jesse is using the Q6_K_XL quant - VonSnickety/framework-ai-cachyos
   - repo: unsloth/Qwen3-4B-128K-GGUF
-    include: Qwen3-4B-128K-UD-Q6_K_XL.gguf
-  # I want to try the Q8_K_XL quant
-  - repo: unsloth/Qwen3-4B-128K-GGUF
-    include: Qwen3-4B-128K-UD-Q8_K_XL.gguf
-
+    include:
+      - Qwen3-4B-128K-UD-Q6_K_XL.gguf
+      # I want to try the Q8_K_XL quant
+      - Qwen3-4B-128K-UD-Q8_K_XL.gguf

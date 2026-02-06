@@ -123,6 +123,28 @@ models:
   # Jesse's framework-ai-cachyos
   # --------------------------------------------------------------------------------
 
+  # ================= Always-on Models =================
+  # Jesse is using Q6_K_XL
+  qwen3-4b-q6:
+    name: "Qwen3-4B-128K-Q6_K_XL"
+    description: "Fast small model for quick tasks"
+    cmd: podman compose up qwen3-4b-128k-q6
+    cmdStop: podman compose stop qwen3-4b-128k-q6
+    proxy: http://qwen3-4b-128k-q6:8080
+    ttl: 0
+    aliases: ["small-q6", "fast-q6", "quick-q6", "instant-q6", "small", "fast", "quick", "instant"]
+
+  # I want to test Q8_K_XL
+  qwen3-4b-q8:
+    name: "Qwen3-4B-128K-Q8_K_XL"
+    description: "Fast small model for quick tasks"
+    cmd: podman compose up qwen3-4b-128k-q8
+    cmdStop: podman compose stop qwen3-4b-128k-q8
+    proxy: http://qwen3-4b-128k-q8:8080
+    ttl: 0
+    aliases: ["small-q8", "fast-q8", "quick-q8", "instant-q8"]
+
+
   # Large uncensored model
   heretic-gpt-oss-120b:
     name: "Heretic-GPT-OSS-120B"
@@ -142,40 +164,33 @@ models:
     ttl: 600
     aliases: ["heretic-q8", "uncensored-q8", "gpt-oss-q8", "gpt-120b-8q"]
 
-  qwen-coder-30b:
+  qwen3-coder-30b:
     name: "Qwen3-Coder-30B-A3B"
     description: "Best coding model - MoE 30B/3B active"
-    cmd: podman compose up qwen-coder-30b
-    cmdStop: podman compose stop qwen-coder-30b
-    proxy: http://qwen-coder-30b:8080
+    cmd: podman compose up qwen3-coder-30b
+    cmdStop: podman compose stop qwen3-coder-30b
+    proxy: http://qwen3-coder-30b:8080
     ttl: 900
     #aliases: ["coder", "coding", "code", "dev", "default"]
-    aliases: ["qwen3", "qwen3-coder"]
-
-  # ================= Always-on Models =================
-  # Jesse is using Q6_K_XL
-  qwen-4b-q6:
-    name: "Qwen3-4B-128K-Q6_K_XL"
-    description: "Fast small model for quick tasks"
-    cmd: podman compose up qwen3-4b-128k-q6
-    cmdStop: podman compose stop qwen3-4b-128k-q6
-    proxy: http://qwen3-4b-128k-q6:8080
-    ttl: 0
-    aliases: ["small-q6", "fast-q6", "quick-q6", "instant-q6"]
-
-  # I want to test Q8_K_XL
-  qwen-4b-q8:
-    name: "Qwen3-4B-128K-Q8_K_XL"
-    description: "Fast small model for quick tasks"
-    cmd: podman compose up qwen3-4b-128k-q8
-    cmdStop: podman compose stop qwen3-4b-128k-q8
-    proxy: http://qwen3-4b-128k-q8:8080
-    ttl: 0
-    aliases: ["small", "fast", "quick", "instant"]
+    aliases: ["qwen3-coder-30b-a3b", "qwen3-coder-30b", "qwen3-coder", "qwen3"]
 
   # --------------------------------------------------------------------------------
   # New
   # --------------------------------------------------------------------------------
+  qwen3-coder-next:
+    name: unsloth/Qwen3-Coder-Next-GGUF
+    description: |
+      An open-weight language model designed specifically for coding agents and local development.
+
+        - *Super Efficient with Significant Performance:* With only 3B activated parameters (80B total parameters), it achieves performance comparable to models with 10–20x more active parameters, making it highly cost-effective for agent deployment.
+        - *Advanced Agentic Capabilities:* Through an elaborate training recipe, it excels at long-horizon reasoning, complex tool usage, and recovery from execution failures, ensuring robust performance in dynamic coding tasks.
+        - *Versatile Integration with Real-World IDE:* Its 256k context length, combined with adaptability to various scaffold templates, enables seamless integration with different CLI/IDE platforms (e.g., Claude Code, Qwen Code, Qoder, Kilo, Trae, Cline, etc.), supporting diverse development environments.
+    cmd: podman compose up qwen3-coder-next
+    cmdStop: podman compose stop qwen3-coder-next
+    proxy: http://qwen3-coder-next:8080
+    ttl: 3600
+    #aliases: ["qwen3-coder-next"]
+
   glm-4.7-flash:
     name: "unsloth/GLM-4.7-Flash-GGUF"
     description: |
@@ -299,8 +314,8 @@ groups:
 #      - "bge-rerank"
 #      - "granite-docling"
 #      - "qwen-vision"
-      - "qwen-4b-q6"
-      #- "qwen-4b-q8"
+      - "qwen3-4b-q6"
+      #- "qwen3-4b-q8"
 
 hooks:
   on_startup:
@@ -309,4 +324,5 @@ hooks:
 #      - "bge-rerank"
 #      - "granite-docling"
 #      - "qwen-vision"
-      - "qwen-4b-q8"
+      - "qwen3-4b-q6"
+      #- "qwen3-4b-q8"
