@@ -423,7 +423,7 @@ services:
 
 
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
-  # Quannt Q8_0
+  # Quant Q8_0
   heretic-gpt-oss-120b-q8: &heretic-gpt-oss-120b-q8
     <<: *x-model-vulkan-radv
     #profiles:
@@ -432,7 +432,6 @@ services:
       <<: *x-model-vulkan-radv-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-Q8_0/kldzj_gpt-oss-120b-heretic-Q8_0-00001-of-00002.gguf
       # default is 8080
-      #LLAMA_ARG_PORT: 8120
     ports:
       - 8121:8080
 
@@ -482,34 +481,114 @@ services:
       <<: *heretic-gpt-oss-120b-q8-env
 
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
-  qwen3-coder-30b:
+  qwen3-coder-30b: &qwen3-coder-30b
     <<: *x-model-vulkan-radv
     environment: &qwen3-coder-30b-env
       <<: *x-model-vulkan-radv-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-30B-A3B-Instruct-GGUF/snapshots/7ce945e58ed3f09f9cf9c33a2122d86ac979b457/Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
-      #LLAMA_ARG_PORT: 8130
     ports:
       - 8130:8080
 
-  qwen3-coder-30b-benchmark:
+  qwen3-coder-30b-vulkan-radv-benchmark:
     <<: *x-model-benchmark-vulkan-radv
     environment:
       <<: *qwen3-coder-30b-env
 
+  qwen3-coder-30b-vulkan-amdvlk:
+    <<: [*x-model-vulkan-amdvlk, *qwen3-coder-30b]
+    environment:
+      <<: *qwen3-coder-30b-env
+
+  qwen3-coder-30b-vulkan-amdvlk-benchmark:
+    <<: *x-model-benchmark-vulkan-amdvlk
+    environment:
+      <<: *qwen3-coder-30b-env
+
+  qwen3-coder-30b-rocm-6.4.4:
+    <<: [*x-model-rocm-6.4.4, *qwen3-coder-30b]
+    environment:
+      <<: *qwen3-coder-30b-env
+
+  qwen3-coder-30b-rocm-6.4.4-benchmark:
+    <<: *x-model-benchmark-rocm-6.4.4
+    environment:
+      <<: *qwen3-coder-30b-env
+
+  qwen3-coder-30b-rocm-7.2:
+    <<: [*x-model-rocm-7.2, *qwen3-coder-30b]
+    environment:
+      <<: *qwen3-coder-30b-env
+
+  qwen3-coder-30b-rocm-7.2-benchmark:
+    <<: *x-model-benchmark-rocm-7.2
+    environment:
+      <<: *qwen3-coder-30b-env
+
+  qwen3-coder-30b-rocm7-nightlies:
+    <<: [*x-model-rocm7-nightlies, *qwen3-coder-30b]
+    environment:
+      <<: *qwen3-coder-30b-env
+
+  qwen3-coder-30b-rocm7-nightlies-benchmark:
+    <<: *x-model-benchmark-rocm7-nightlies
+    environment:
+      <<: *qwen3-coder-30b-env
+
+
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
-  qwen3-coder-next:
+  qwen3-coder-next: &qwen3-coder-next
     <<: *x-model-vulkan-radv
     environment: &qwen3-coder-next-env
       <<: *x-model-vulkan-radv-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-Next-GGUF/snapshots/96ab45bf06d904ee251044b0679df08f668677d2/UD-Q8_K_XL/Qwen3-Coder-Next-UD-Q8_K_XL-00001-of-00003.gguf
-      #LLAMA_ARG_PORT: 8130
     ports:
       - 8140:8080
 
-  qwen3-coder-next-benchmark:
+  qwen3-coder-next-vulkan-radv-benchmark:
     <<: *x-model-benchmark-vulkan-radv
     environment:
-      <<: *qwen3-coder-30b-env
+      <<: *qwen3-coder-next-env
+
+  qwen3-coder-next-vulkan-amdvlk:
+    <<: [*x-model-vulkan-amdvlk, *qwen3-coder-next]
+    environment:
+      <<: *qwen3-coder-next-env
+
+  qwen3-coder-next-vulkan-amdvlk-benchmark:
+    <<: *x-model-benchmark-vulkan-amdvlk
+    environment:
+      <<: *qwen3-coder-next-env
+
+  qwen3-coder-next-rocm-6.4.4:
+    <<: [*x-model-rocm-6.4.4, *qwen3-coder-next]
+    environment:
+      <<: *qwen3-coder-next-env
+
+  qwen3-coder-next-rocm-6.4.4-benchmark:
+    <<: *x-model-benchmark-rocm-6.4.4
+    environment:
+      <<: *qwen3-coder-next-env
+
+  qwen3-coder-next-rocm-7.2:
+    <<: [*x-model-rocm-7.2, *qwen3-coder-next]
+    environment:
+      <<: *qwen3-coder-next-env
+
+  qwen3-coder-next-rocm-7.2-benchmark:
+    <<: *x-model-benchmark-rocm-7.2
+    environment:
+      <<: *qwen3-coder-next-env
+
+  qwen3-coder-next-rocm7-nightlies:
+    <<: [*x-model-rocm7-nightlies, *qwen3-coder-next]
+    environment:
+      <<: *qwen3-coder-next-env
+
+  qwen3-coder-next-rocm7-nightlies-benchmark:
+    <<: *x-model-benchmark-rocm7-nightlies
+    environment:
+      <<: *qwen3-coder-next-env
+
 
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   qwen3-4b-128k-q6:
@@ -517,7 +596,6 @@ services:
     environment: &qwen3-4b-128k-q6-env
       <<: *x-model-vulkan-radv-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q6_K_XL.gguf
-      #LLAMA_ARG_PORT: 8140
     ports:
       - 8150:8080
 
@@ -532,7 +610,6 @@ services:
     environment: &qwen3-4b-128k-q8-env
       <<: *x-model-vulkan-radv-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q8_K_XL.gguf
-      #LLAMA_ARG_PORT: 8150
     ports:
       - 8160:8080
 
@@ -556,7 +633,6 @@ services:
     environment: &glm-47-flash-env
       <<: *x-model-vulkan-radv-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--GLM-4.7-Flash-GGUF/snapshots/66205ea11ef638d83850389bd921e6c199f7504e/GLM-4.7-Flash-UD-Q8_K_XL.gguf
-      #LLAMA_ARG_PORT: 8160
       LLAMA_ARG_CTX_SIZE: 202752
     ports:
       - 8170:8080
