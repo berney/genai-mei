@@ -202,6 +202,49 @@ models:
     ttl: 3600
     aliases: ["glm", "glm-4.7", "coding", "coder", "code", "dev", "default"]
 
+  # --------------------------------------------------------------------------------
+  # Multi Modal
+  # --------------------------------------------------------------------------------
+  qwen2.5-omni-7b:
+    name: unsloth/Qwen2.5-Omni-7B-GGUF
+    description: |
+      An end-to-end multimodal model designed to perceive diverse modalities, including text, images, audio, and video, while simultaneously generating text and natural speech responses in a streaming manner.
+    cmd: podman compose up qwen2.5-omni-7b
+    cmdStop: podman compose stop qwen2.5-omni-7b
+    proxy: http://qwen2.5-omni-7b:8080
+    ttl: 3600
+    aliases: ["qwen2.5-omni", "omni", "multimodal", "mutli-modal"]
+
+
+  # --------------------------------------------------------------------------------
+  kokoro-tts:
+    name: "kokoro TTS"
+    useModelName: "tts-1"
+    cmd: podman compose up kokoro-tts
+    cmdStop: podman compose stop kokoro-tts
+    proxy: http://kokoro-tts:8880
+    ttl: 3600
+    aliases: ["kokoro", "tts", "tts-1"]
+
+  kokoro-tts-rocm:
+    name: "kokoro TTS ROCm"
+    useModelName: "tts-1"
+    cmd: podman compose up kokoro-tts-rocm
+    cmdStop: podman compose stop kokoro-tts-rocm
+    proxy: http://kokoro-tts-rocm:8880
+    ttl: 3600
+    aliases: ["kokoro-rocm", "tts-rocm", "tts-1-rocm"]
+
+  # https://github.com/mostlygeek/llama-swap/issues/41#issuecomment-2722637867
+  whisper:
+    # needed
+    checkEndpoint: /v1/audio/transcriptions/
+    cmd: podman compose up whisper.cpp
+    cmdStop: podman compose stop whisper.cpp
+    proxy: http://whisper.cpp:8080
+    #proxy: "http://host.containers.internal:8999"
+    aliases: ["whisper.cpp", "stt"]
+    ttl: 3600
 
   # --------------------------------------------------------------------------------
   # Jesse's Mess #4
@@ -316,6 +359,9 @@ groups:
 #      - "qwen-vision"
       - "qwen3-4b-q6"
       #- "qwen3-4b-q8"
+      - kokoro-tts
+      - kokoro-tts-rocm
+      - whisper
 
 hooks:
   on_startup:

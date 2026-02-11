@@ -495,6 +495,18 @@ C4Container
     Rel(perplexica, searxng, "HTTP/REST", "Queries for web‑search results")
 ```
 
+## Whisper
+
+### Testing
+
+```bash
+curl -X POST http://localhost:8999/v1/audio/transcriptions \
+     -F "file=@/home/bdawg/Documents/bdawg-hear-me-rawr.wav"
+```
+
+```json
+{"text":" I am my big dog, hear me roar.\n"}%
+```
 
 ## Contributing
 

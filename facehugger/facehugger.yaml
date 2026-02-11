@@ -26,6 +26,16 @@ models:
   - repo: bartowski/kldzj_gpt-oss-120b-heretic-GGUF
     include: kldzj_gpt-oss-120b-heretic-bf16/*
 
+  - repo: unsloth/Qwen2.5-Omni-7B-GGUF
+    include:
+      - Qwen2.5-Omni-7B-UD-Q8_K_XL.gguf
+      - mmproj-F16.gguf
+
+  #- repo: ggml-org/Qwen2.5-Omni-7B-GGUF
+  #  include:
+  #   - Qwen2.5-Omni-7B-Q8_0.gguf
+  #   - mmproj-Qwen2.5-Omni-7B-Q8_0.gguf
+
   # Jesse uses BF16, but I want to test Q8_0 because I think it will be faster on the Strix Halo
   - repo: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF
     include: Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf

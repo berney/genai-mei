@@ -317,7 +317,107 @@ services:
     #  - llama-swap
 
 
+  # ==============================================================================================================================================================
+  # whisper.cpp
+  # ==============================================================================================================================================================
+  whisper.cpp:
+    profiles:
+      - whisper
+    image: ghcr.io/ggml-org/whisper.cpp:main-vulkan
+    userns_mode: keep-id
+    # Command Line
+    # - entrypoint is `bash -c` so need the quotes
+    # - need to listen on 0.0.0.0 so host can connect to docker published port
+    # - OpenAPI Compatibility set request path and inference path
+    #   https://github.com/mostlygeek/llama-swap/issues/41#issuecomment-2722637867
+    command: >-
+      "whisper-server --host 0.0.0.0 -m /models/ggml-large-v3-turbo-q5_0.bin --request-path /v1/audio/transcriptions --inference-path ''"
+    #  "whisper-server --host 0.0.0.0 -m /models/ggml-large-v3-turbo-q5_0.bin"
+    #  "whisper-server --host 0.0.0.0 -m /models/ggml-base.en.bin"
+    #  "whisper-server --host 0.0.0.0 -m /models/ggml-large-v3.bin"
+    devices:
+      # Direct Rendering Infrastructure (dri) - exposes renderer nodes (renderD128) and compute shaders, used by Vulkan/Mesa
+      - /dev/dri:/dev/dri
+      # Kernel Fusion Driver (kfd) - primary compute interface - essential for HIP/ROCm
+      - /dev/kfd:/dev/kfd
+    #group_add:
+    #  - video
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+      - label=disable
+    ports:
+      - "8999:8080"
+    #working_dir: /genai-mei
+    volumes:
+      # From host's perspecitve
+      #- ./whisper-models:/models:Z
+      # From llama-swap's perspective
+      #- /tmp/whisper-models:/models:Z
+      #
+      # Podman CLI (client-side) will create the source directory if it doesn't exist (think inside the llama-swap container)
+      # So, the parent directory chain needs to be R/W.
+      # The actual mount will happen on the host (podman daemon listening on the socket)
+      # So, we give a source path that is both correct from hosts POV and writable from llama-servers POV
+      - ~/genai/genai-mei/whisper-models:/models:ro
+
+  whisper-bench:
+    profiles:
+      - whisper-bench
+    image: ghcr.io/ggml-org/whisper.cpp:main-vulkan
+    userns_mode: keep-id
+    # entrypoint is `bash -c` so need the quotes
+    # need to listen on 0.0.0.0 so host can connect to docker published port
+    #command: >-
+    #  "whisper-server --host 0.0.0.0 -m /models/ggml-base.en.bin"
+    command: >-
+      "whisper-bench -m /models/ggml-large-v3-turbo-q5_0.bin -t 8"
+    #  "whisper-bench -m /models/ggml-small.en.bin -t 4"
+    #  "whisper-bench -m /models/ggml-large-v3.bin -t 8"
+    #  "whisper-bench -m /models/ggml-large-v3-turbo.bin -t 8"
+    #  "whisper-bench -m /models/ggml-large-v3-turbo-q8_0.bin -t 8"
+    devices:
+      # Direct Rendering Infrastructure (dri) - exposes renderer nodes (renderD128) and compute shaders, used by Vulkan/Mesa
+      - /dev/dri:/dev/dri
+      # Kernel Fusion Driver (kfd) - primary compute interface - essential for HIP/ROCm
+      - /dev/kfd:/dev/kfd
+    #group_add:
+    #  - video
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+      - label=disable
+    #working_dir: /genai-mei
+    volumes:
+      # From host's perspecitve
+      - ./whisper-models:/models:Z
+      # From llama-swap's perspective
+      #- /whisper-models:/models:Z
+
+  whisper-download:
+    profiles:
+      - whisper-download
+    image: ghcr.io/ggml-org/whisper.cpp:main-vulkan
+    userns_mode: keep-id
+    # entrypoint is `bash -c` so need the quotes
+    volumes:
+      - ./whisper-models:/models:Z
+    command: >-
+      "./models/download-ggml-model.sh large-v3-turbo-q5_0 /models"
+    #  "./models/download-ggml-model.sh base /models"
+    #  "./models/download-ggml-model.sh base.en /models"
+    #  "./models/download-ggml-model.sh small /models"
+    #  "./models/download-ggml-model.sh small.en /models"
+    #  "./models/download-ggml-model.sh small.en-tdrz /models"
+    #  "./models/download-ggml-model.sh medium /models"
+    #  "./models/download-ggml-model.sh medium.en /models"
+    #  "./models/download-ggml-model.sh large-v3 /models"
+    #  "./models/download-ggml-model.sh large-v3-turbo /models"
+    #  "./models/download-ggml-model.sh large-v3-turbo-q8_0 /models"
+
+  # ==============================================================================================================================================================
   # huggingface CLI
+  # ==============================================================================================================================================================
   # Use to download models
   facehugger:
     userns_mode: keep-id
@@ -327,7 +427,6 @@ services:
     image: berne/facehugger
     entrypoint: facehugger
     command: ""
-    #command: [""]
     #command: >-
     #  hf download bartowski/kldzj_gpt-oss-120b-heretic-GGUF/tree/main/kldzj_gpt-oss-120b-heretic-bf16
     volumes:
@@ -335,6 +434,9 @@ services:
       - ./facehugger/facehugger.yaml:/facehugger.yaml
 
 
+  # ==============================================================================================================================================================
+  # Mistral Vibe
+  # ==============================================================================================================================================================
   mistral-vibe:
     profiles:
       - mistral-vibe
@@ -643,3 +745,51 @@ services:
     # https://unsloth.ai/docs/models/glm-4.7-flash
     environment:
       <<: *glm-47-flash-env
+
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
+  # Multi Modal Model - Omni
+  qwen2.5-omni-7b:
+    <<: *x-model-vulkan-radv
+    environment: &qwen2.5-omni-7b-env
+      <<: *x-model-vulkan-radv-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen2.5-Omni-7B-GGUF/snapshots/f9bbd33a2931371b336c3d48532bb278a478471d/Qwen2.5-Omni-7B-UD-Q8_K_XL.gguf
+      LLAMA_ARG_CTX_SIZE: 65536
+    command: &coder-env >-
+      llama-server
+      --no-warmup
+      --temp 0.7
+      --top-p 0.9
+      --min-p 0.05
+      --typical 0.95
+      --mmproj /huggingface/hub/models--unsloth--Qwen2.5-Omni-7B-GGUF/snapshots/f9bbd33a2931371b336c3d48532bb278a478471d/mmproj-F16.gguf
+    #  --repeat-penalty 1.0
+    ports:
+      - 8180:8080
+
+  qwen2.5-omni-7b-benchmark:
+    <<: *x-model-benchmark-vulkan-radv
+    # No env vars for several options
+    # https://unsloth.ai/docs/models/glm-4.7-flash
+    environment:
+      <<: *qwen2.5-omni-7b-env
+
+  kokoro-tts:
+    profiles:
+      - model
+      - tts
+    image: ghcr.io/remsky/kokoro-fastapi-gpu:latest
+    environment:
+      API_LOG_LEVEL: INFO
+    ports:
+      - 8880:8880
+
+  kokoro-tts-rocm:
+    <<: *x-engine
+    profiles:
+      - model
+      - tts
+    image: ghcr.io/remsky/kokoro-fastapi-rocm:latest-amd64
+    environment:
+      API_LOG_LEVEL: INFO
+    ports:
+      - 8890:8880
