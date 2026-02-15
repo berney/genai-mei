@@ -281,13 +281,14 @@ services:
 
 
   # Not really needed, llama-server has a build in web UI that's nearly as good.
+  # But Conduit is made to work with Open WebUI
+  # And I got full duplex voice conversations (STT->Reason->TTS) working in Open WebUI
   # OpenWebUI takes about 813MiB of RAM
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     profiles:
-      - open-webui
-    #network_mode: host
-    #container_name: open-webui
+      # implicit default
+      - ""
     ports:
       - 8080:8080
     volumes:
@@ -331,7 +332,8 @@ services:
     # - OpenAPI Compatibility set request path and inference path
     #   https://github.com/mostlygeek/llama-swap/issues/41#issuecomment-2722637867
     command: >-
-      "whisper-server --host 0.0.0.0 -m /models/ggml-large-v3-turbo-q5_0.bin --request-path /v1/audio/transcriptions --inference-path ''"
+      "whisper-server --host 0.0.0.0 -m /models/ggml-large-v3-turbo-q5_0.bin --request-path /v1/audio/transcriptions --inference-path '' --vad --vad-model /models/ggml-silero-v6.2.0.bin"
+    #  "whisper-server --host 0.0.0.0 -m /models/ggml-large-v3-turbo-q5_0.bin --request-path /v1/audio/transcriptions --inference-path ''"
     #  "whisper-server --host 0.0.0.0 -m /models/ggml-large-v3-turbo-q5_0.bin"
     #  "whisper-server --host 0.0.0.0 -m /models/ggml-base.en.bin"
     #  "whisper-server --host 0.0.0.0 -m /models/ggml-large-v3.bin"
@@ -403,7 +405,7 @@ services:
     volumes:
       - ./whisper-models:/models:Z
     command: >-
-      "./models/download-ggml-model.sh large-v3-turbo-q5_0 /models"
+      "./models/download-vad-model.sh silero-v6.2.0 /models"
     #  "./models/download-ggml-model.sh base /models"
     #  "./models/download-ggml-model.sh base.en /models"
     #  "./models/download-ggml-model.sh small /models"
@@ -414,6 +416,7 @@ services:
     #  "./models/download-ggml-model.sh large-v3 /models"
     #  "./models/download-ggml-model.sh large-v3-turbo /models"
     #  "./models/download-ggml-model.sh large-v3-turbo-q8_0 /models"
+    #  "./models/download-ggml-model.sh large-v3-turbo-q5_0 /models"
 
   # ==============================================================================================================================================================
   # huggingface CLI

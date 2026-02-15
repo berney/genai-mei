@@ -223,7 +223,7 @@ models:
     cmd: podman compose up kokoro-tts
     cmdStop: podman compose stop kokoro-tts
     proxy: http://kokoro-tts:8880
-    ttl: 3600
+    ttl: 0
     aliases: ["kokoro", "tts", "tts-1"]
 
   kokoro-tts-rocm:
@@ -232,7 +232,7 @@ models:
     cmd: podman compose up kokoro-tts-rocm
     cmdStop: podman compose stop kokoro-tts-rocm
     proxy: http://kokoro-tts-rocm:8880
-    ttl: 3600
+    ttl: 0
     aliases: ["kokoro-rocm", "tts-rocm", "tts-1-rocm"]
 
   # https://github.com/mostlygeek/llama-swap/issues/41#issuecomment-2722637867
@@ -244,7 +244,7 @@ models:
     proxy: http://whisper.cpp:8080
     #proxy: "http://host.containers.internal:8999"
     aliases: ["whisper.cpp", "stt"]
-    ttl: 3600
+    ttl: 0
 
   # --------------------------------------------------------------------------------
   # Jesse's Mess #4
@@ -372,3 +372,5 @@ hooks:
 #      - "qwen-vision"
       - "qwen3-4b-q6"
       #- "qwen3-4b-q8"
+      - kokoro-tts
+      - whisper
