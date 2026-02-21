@@ -61,3 +61,9 @@ models:
       - Qwen3-4B-128K-UD-Q6_K_XL.gguf
       # I want to try the Q8_K_XL quant
       - Qwen3-4B-128K-UD-Q8_K_XL.gguf
+
+  - repo: openai/gpt-oss-20b
+  - repo: aoi-ot/VibeVoice-Large
+  - repo: microsoft/VibeVoice-ASR
+  - repo: Qwen/Qwen3-TTS-12Hz-1.7B-Base
+  - repo: Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign

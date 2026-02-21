@@ -590,7 +590,8 @@ services:
     <<: *x-model-vulkan-radv
     environment: &qwen3-coder-30b-env
       <<: *x-model-vulkan-radv-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-30B-A3B-Instruct-GGUF/snapshots/7ce945e58ed3f09f9cf9c33a2122d86ac979b457/Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
+      #LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-30B-A3B-Instruct-GGUF/snapshots/7ce945e58ed3f09f9cf9c33a2122d86ac979b457/Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-30B-A3B-Instruct-GGUF/snapshots/b17cb02dd882d5b6ab62fc777ad2995f19668350/Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
     ports:
       - 8130:8080
 
@@ -645,7 +646,8 @@ services:
     <<: *x-model-vulkan-radv
     environment: &qwen3-coder-next-env
       <<: *x-model-vulkan-radv-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-Next-GGUF/snapshots/96ab45bf06d904ee251044b0679df08f668677d2/UD-Q8_K_XL/Qwen3-Coder-Next-UD-Q8_K_XL-00001-of-00003.gguf
+      #LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-Next-GGUF/snapshots/96ab45bf06d904ee251044b0679df08f668677d2/UD-Q8_K_XL/Qwen3-Coder-Next-UD-Q8_K_XL-00001-of-00003.gguf
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-Next-GGUF/snapshots/c34da54d209ead4748a1e2f4b5a90edeb6e8bbd2/UD-Q8_K_XL/Qwen3-Coder-Next-UD-Q8_K_XL-00001-of-00003.gguf
     ports:
       - 8140:8080
 
@@ -737,7 +739,8 @@ services:
       --repeat-penalty 1.0
     environment: &glm-47-flash-env
       <<: *x-model-vulkan-radv-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--GLM-4.7-Flash-GGUF/snapshots/66205ea11ef638d83850389bd921e6c199f7504e/GLM-4.7-Flash-UD-Q8_K_XL.gguf
+      #LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--GLM-4.7-Flash-GGUF/snapshots/66205ea11ef638d83850389bd921e6c199f7504e/GLM-4.7-Flash-UD-Q8_K_XL.gguf
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--GLM-4.7-Flash-GGUF/snapshots/0d32489ecb9db6d2a4fc93bd27ef01519f95474d/GLM-4.7-Flash-UD-Q8_K_XL.gguf
       LLAMA_ARG_CTX_SIZE: 202752
     ports:
       - 8170:8080
