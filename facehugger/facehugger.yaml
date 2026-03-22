@@ -67,3 +67,11 @@ models:
   - repo: microsoft/VibeVoice-ASR
   - repo: Qwen/Qwen3-TTS-12Hz-1.7B-Base
   - repo: Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign
+  - repo: unsloth/GLM-4.6V-Flash-GGUF
+    include:
+      - GLM-4.6V-Flash-UD-Q8_K_XL.gguf
+      #- imatrix_unsloth.gguf_file
+      - mmproj-BF16.gguf
+  - repo: unsloth/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF
+    include:
+      - UD-Q8_K_XL/*

@@ -215,6 +215,16 @@ models:
     ttl: 3600
     aliases: ["qwen2.5-omni", "omni", "multimodal", "mutli-modal"]
 
+  glm-4.6v-flash:
+    name: unsloth/GLM-4.6V-Flash-GGUF
+    description: |
+      GLM-4.6V series model includes two versions: GLM-4.6V (106B), a foundation model designed for cloud and high-performance cluster scenarios, and GLM-4.6V-Flash (9B), a lightweight model optimized for local deployment and low-latency applications. GLM-4.6V scales its context window to 128k tokens in training, and achieves SoTA performance in visual understanding among models of similar parameter scales. Crucially, we integrate native Function Calling capabilities for the first time. This effectively bridges the gap between "visual perception" and "executable action" providing a unified technical foundation for multimodal agents in real-world business scenarios.
+    cmd: podman compose up glm-4.6v-flash
+    cmdStop: podman compose stop glm-4.6v-flash
+    proxy: http://glm-4.6v-flash:8080
+    ttl: 3600
+    aliases: ["pdf"]
+
 
   # --------------------------------------------------------------------------------
   kokoro-tts:
