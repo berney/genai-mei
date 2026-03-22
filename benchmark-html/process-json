@@ -1,0 +1,4 @@
+#!/bin/sh
+cat qwen3-coder-30b-rocm-6.4.4-benchmark.json \
+    | jq --arg backend 'ROCm-6.4.4' 'map({backend: "\($backend)", n_prompt, n_gen, avg_ns,avg_ts, stddev_ns, stddev_ts, samples_ns, samples_ts})' \
+    | jq '{backend: first.backend, pp: (.[:3] | map({"pp\(.n_prompt)": {avg_ts, stddev_ts}})), tg: {"tg\(last.n_gen)": {avg_ts: last.avg_ts, stddev_ts: last.stddev_ts}}}'

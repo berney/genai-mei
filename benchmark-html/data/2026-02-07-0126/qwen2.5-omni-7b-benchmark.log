@@ -1,0 +1,14 @@
+time="2026-02-07T01:26:30+11:00" level=warning msg="No services to build"
+time="2026-02-07T01:26:30+11:00" level=warning msg="No services to build"
+ Container genai-mei-qwen2.5-omni-7b-benchmark-run-5884cf86a365 Creating 
+ Container genai-mei-qwen2.5-omni-7b-benchmark-run-5884cf86a365 Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen2vl 7B Q8_0                |   9.49 GiB |     7.62 B | Vulkan     | 999 |           pp512 |      839.37 ± 201.59 |
+| qwen2vl 7B Q8_0                |   9.49 GiB |     7.62 B | Vulkan     | 999 |          pp1024 |        861.93 ± 4.67 |
+| qwen2vl 7B Q8_0                |   9.49 GiB |     7.62 B | Vulkan     | 999 |          pp2048 |       816.67 ± 20.44 |
+| qwen2vl 7B Q8_0                |   9.49 GiB |     7.62 B | Vulkan     | 999 |           tg128 |         23.29 ± 0.11 |
+
+build: 6a9bf2f78 (7928)

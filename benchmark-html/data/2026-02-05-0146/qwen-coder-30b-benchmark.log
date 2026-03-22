@@ -1,0 +1,16 @@
+[4m>>>> Executing external compose provider "/usr/local/bin/docker-compose". Please see podman-compose(1) for how to disable this message. <<<<
+
+[0mtime="2026-02-05T02:57:24+11:00" level=warning msg="No services to build"
+time="2026-02-05T02:57:24+11:00" level=warning msg="No services to build"
+ Container genai-mei-qwen-coder-30b-benchmark-run-2d68824f07b8 Creating 
+ Container genai-mei-qwen-coder-30b-benchmark-run-2d68824f07b8 Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |           pp512 |      834.53 ± 259.94 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |          pp1024 |        843.81 ± 6.57 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |          pp2048 |      735.31 ± 226.98 |
+| qwen3moe 30B.A3B Q8_0          |  30.25 GiB |    30.53 B | Vulkan     | 999 |           tg128 |         58.24 ± 0.51 |
+
+build: 6a9bf2f78 (7928)

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <select id="engineFilter"><option>All</option></select>
+  <select id="modelFilter"><option>All</option></select>
+  <canvas id="perfChart"></canvas>
+
+  <script>
+    let allData = [];  // Combined dataset
+
+    // Load all JSON files recursively (or list explicitly)
+    async function loadData() {
+      const dates = ['2026-01-15', '2026-02-01'];  // Or dynamically list folders
+      for (const date of dates) {
+        const files = await Promise.all([
+          fetch(`data/${date}/rocm.json`).then(r => r.json()),
+          fetch(`data/${date}/vulkan-radv.json`).then(r => r.json()),
+          // Add more...
+        ]);
+        files.forEach(file => allData.push(...file.results));  // Assuming array of runs
+      }
+      populateFilters();
+      updateChart();
+    }
+
+    function populateFilters() {
+      const engines = [...new Set(allData.map(d => d.engine))];
+      document.getElementById('engineFilter').innerHTML =
+        engines.map(e => `<option>${e}</option>`).join('') + '<option>All</option>';
+      // Same for models, quants...
+    }
+
+    // Filter + Chart update
+    function updateChart() {
+      const engine = document.getElementById('engineFilter').value;
+      const filtered = allData.filter(d =>
+        (!engine || d.engine === engine) /* + model/quant/date filters */
+      );
+
+      const ctx = document.getElementById('perfChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: filtered.map(d => `${d.model} (${d.quant})`),
+          datasets: [{ label: 'Tokens/sec', data: filtered.map(d => d.speed) }]
+        },
+        options: { responsive: true }
+      });
+    }
+
+    loadData();  // Auto-run
+  </script>
+</body>
+</html>
+

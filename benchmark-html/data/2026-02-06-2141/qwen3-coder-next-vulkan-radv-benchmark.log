@@ -1,0 +1,14 @@
+time="2026-02-06T21:48:53+11:00" level=warning msg="No services to build"
+time="2026-02-06T21:48:53+11:00" level=warning msg="No services to build"
+ Container genai-mei-qwen3-coder-next-vulkan-radv-benchmark-run-a0b3a625ad91 Creating 
+ Container genai-mei-qwen3-coder-next-vulkan-radv-benchmark-run-a0b3a625ad91 Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen3next 80B.A3B Q8_0         |  79.83 GiB |    79.67 B | Vulkan     | 999 |           pp512 |      404.52 ± 101.67 |
+| qwen3next 80B.A3B Q8_0         |  79.83 GiB |    79.67 B | Vulkan     | 999 |          pp1024 |        440.59 ± 3.50 |
+| qwen3next 80B.A3B Q8_0         |  79.83 GiB |    79.67 B | Vulkan     | 999 |          pp2048 |       478.22 ± 10.42 |
+| qwen3next 80B.A3B Q8_0         |  79.83 GiB |    79.67 B | Vulkan     | 999 |           tg128 |         26.83 ± 0.22 |
+
+build: 6a9bf2f78 (7928)

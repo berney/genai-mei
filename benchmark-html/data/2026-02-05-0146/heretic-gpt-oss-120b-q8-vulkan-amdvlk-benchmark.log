@@ -1,0 +1,16 @@
+[4m>>>> Executing external compose provider "/usr/local/bin/docker-compose". Please see podman-compose(1) for how to disable this message. <<<<
+
+[0mtime="2026-02-05T02:13:35+11:00" level=warning msg="No services to build"
+time="2026-02-05T02:13:36+11:00" level=warning msg="No services to build"
+ Container genai-mei-heretic-gpt-oss-120b-q8-vulkan-amdvlk-benchmark-run-78c8905d2899 Creating 
+ Container genai-mei-heretic-gpt-oss-120b-q8-vulkan-amdvlk-benchmark-run-78c8905d2899 Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |           pp512 |      388.20 ± 172.02 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |          pp1024 |        482.18 ± 2.89 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |          pp2048 |        469.18 ± 7.03 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |           tg128 |         52.88 ± 0.52 |
+
+build: 6a9bf2f78 (7928)
