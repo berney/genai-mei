@@ -166,13 +166,16 @@ Usage:
 
 
 ## Running different python programs
-## Python Install
+### Python Install
 * The tools etc aren't compatible with Python 3.14 yet
 * From the default venv (`/opt/venv/`) that is automatically activated when entering the distrobox, use `python -m venv venv` to create a new venv for each git repo.
   * This will use Python3.13.
 
-* install `uv` via `sudo dnf install uv`, then running it, it crashes segv for me, so just use `pip` (in a venv).
+> [!WARNING]
+> * Don't use `uv venv` as it will use python 3.14.
+>  * Don't install `uv` via `sudo dnf install uv`, then running it, it crashes segv for me, so just use `pip` (in a venv).
 
+* Activate the venv with `. venv/bin/activate`
 
 ### Install PyTorch ROCm version
 
@@ -187,6 +190,10 @@ python -m pip install \
 
 ### Install flash attention 2
 
+```bash
+pip install flash-attn==2.8.3 --no-build-isolation
+```
+
 #### Check flash attention 2 is working
 
 
@@ -200,6 +207,8 @@ Not working:
 Traceback (most recent call last):
   File "<string>", line 1, in <module>
     import flash_attn; print(flash_attn.__version__, flash_attn.__file__)
+
+
     ^^^^^^^^^^^^^^^^^
 ModuleNotFoundError: No module named 'flash_attn'
 ```
@@ -208,11 +217,17 @@ ModuleNotFoundError: No module named 'flash_attn'
 
 Working:
 
+* After installing it, this is what you should see.
+
 ```
 2.8.3 /home/bdawg/co/git/Qwen3-TTS/venv/lib64/python3.13/site-packages/flash_attn/__init__.py
 ```
 
-* After installing it, this is what you should see.
+### Install $REPO
+
+```bash
+python -m pip install --prefer-binary -e .
+```
 
 
 <!-- vim: set spell: -->
