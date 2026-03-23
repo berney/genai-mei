@@ -1,0 +1,10 @@
+[4m>>>> Executing external compose provider "/usr/local/bin/docker-compose". Please see podman-compose(1) for how to disable this message. <<<<
+
+[0mtime="2026-03-23T00:55:39+11:00" level=warning msg="No services to build"
+time="2026-03-23T00:55:39+11:00" level=warning msg="No services to build"
+ Container genai-mei-nvidia-nemotron-3-super-q6-vulkan-radv-benchmark-run-1de363c0d9c2 Creating 
+ Container genai-mei-nvidia-nemotron-3-super-q6-vulkan-radv-benchmark-run-1de363c0d9c2 Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |

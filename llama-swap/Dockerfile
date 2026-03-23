@@ -1,5 +1,5 @@
 FROM alpine AS downloader
-ARG PODMAN_VERSION=v5.7.1
+ARG PODMAN_VERSION=v5.8.1
 ARG DOCKER_COMPOSE_VERSION=v5.0.2
 ADD --link https://github.com/containers/podman/releases/download/${PODMAN_VERSION}/podman-remote-static-linux_amd64.tar.gz /tmp
 ADD --chmod=755 --link https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-linux-x86_64 /usr/local/bin/

@@ -74,4 +74,5 @@ models:
       - mmproj-BF16.gguf
   - repo: unsloth/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF
     include:
+      - UD-Q6_K_XL/*
       - UD-Q8_K_XL/*

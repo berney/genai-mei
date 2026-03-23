@@ -741,11 +741,11 @@ services:
     environment:
       <<: *qwen3-4b-128k-q8-env
 
-  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
+  # --------------------------------------------------------------------------------------------------------------------------------------
   # primary coding model
   glm-4.7-flash:
     <<: *x-model-vulkan-radv
-    command: &coder-env >-
+    command: >-
       llama-server
       --no-warmup
       --temp 0.3
@@ -768,6 +768,83 @@ services:
     environment:
       <<: *glm-47-flash-env
 
+
+  # --------------------------------------------------------------------------------------------------------------------------------------
+  # NVIDIA Nemotron 3 Super: James is interested in it
+  nvidia-nemotron-3-super-q6:
+    <<: *x-model-vulkan-radv
+    # From their quick start:
+    # Use temperature=1.0 and top_p=0.95 across all tasks and serving backends — reasoning, tool calling, and general chat alike.
+    #
+    # bdawg: added ctk q8_0 to quantise the context to save space
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --top-p 0.95
+      --min-p 0.01
+      --typical 0.95
+    #  --repeat-penalty 1.0
+    environment: &nvidia-nemotron-3-super-q6-env
+      <<: *x-model-vulkan-radv-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/snapshots/036038fb30334a2d56a146c6f0d4871ab5edccbb/UD-Q6_K_XL/NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q6_K_XL-00001-of-00004.gguf
+      #LLAMA_ARG_CTX_SIZE: 4096
+      #LLAMA_ARG_N_GPU_LAYERS: 70
+    ports:
+      - 8200:8080
+
+  nvidia-nemotron-3-super-q6-vulkan-radv-benchmark:
+    <<: *x-model-benchmark-vulkan-radv
+    environment:
+      <<: *nvidia-nemotron-3-super-q6-env
+
+  nvidia-nemotron-3-super-q6-vulkan-amdvlk-benchmark:
+    <<: *x-model-benchmark-vulkan-amdvlk
+    environment:
+      <<: *nvidia-nemotron-3-super-q6-env
+
+  nvidia-nemotron-3-super-q6-rocm-6.4.4-benchmark:
+    <<: *x-model-benchmark-rocm-6.4.4
+    environment:
+      <<: *nvidia-nemotron-3-super-q6-env
+
+  nvidia-nemotron-3-super-q6-rocm-7.2-benchmark:
+    <<: *x-model-benchmark-rocm-7.2
+    environment:
+      <<: *nvidia-nemotron-3-super-q6-env
+
+  nvidia-nemotron-3-super-q6-rocm7-nightlies-benchmark:
+    <<: *x-model-benchmark-rocm7-nightlies
+    environment:
+      <<: *nvidia-nemotron-3-super-q6-env
+
+
+  nvidia-nemotron-3-super-q8:
+    <<: *x-model-vulkan-radv
+    # From their quick start:
+    # Use temperature=1.0 and top_p=0.95 across all tasks and serving backends — reasoning, tool calling, and general chat alike.
+    #
+    # bdawg: added ctk q8_0 to quantise the context to save space
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --top-p 0.95
+      --min-p 0.01
+      --typical 0.95
+      --cache-type-k q8_0
+    #  --repeat-penalty 1.0
+    environment: &nvidia-nemotron-3-super-q8-env
+      <<: *x-model-vulkan-radv-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/snapshots/036038fb30334a2d56a146c6f0d4871ab5edccbb/UD-Q8_K_XL/NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q8_K_XL-00001-of-00004.gguf
+      LLAMA_ARG_CTX_SIZE: 4096
+      LLAMA_ARG_N_GPU_LAYERS: 70
+    ports:
+      - 8210:8080
+
+
+
+
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   # Multi Modal Model - Omni
   qwen2.5-omni-7b:
@@ -776,7 +853,7 @@ services:
       <<: *x-model-vulkan-radv-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen2.5-Omni-7B-GGUF/snapshots/f9bbd33a2931371b336c3d48532bb278a478471d/Qwen2.5-Omni-7B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CTX_SIZE: 65536
-    command: &coder-env >-
+    command: >-
       llama-server
       --no-warmup
       --temp 0.7
@@ -802,7 +879,7 @@ services:
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--GLM-4.6V-Flash-GGUF/snapshots/c78a0727cb5ee489db2f218a212f613943023ee8/GLM-4.6V-Flash-UD-Q8_K_XL.gguf
       #LLAMA_ARG_CTX_SIZE: 202752
       LLAMA_ARG_CTX_SIZE: 131072
-    command: &coder-env >-
+    command: >-
       llama-server
       --no-warmup
       --temp 0.7

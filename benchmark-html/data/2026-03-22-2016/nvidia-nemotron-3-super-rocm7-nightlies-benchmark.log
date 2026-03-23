@@ -1,0 +1,13 @@
+[4m>>>> Executing external compose provider "/usr/local/bin/docker-compose". Please see podman-compose(1) for how to disable this message. <<<<
+
+[0mtime="2026-03-22T20:16:25+11:00" level=warning msg="No services to build"
+time="2026-03-22T20:16:25+11:00" level=warning msg="No services to build"
+ Container genai-mei-nvidia-nemotron-3-super-rocm7-nightlies-benchmark-run-4f109605f573 Creating 
+ Container genai-mei-nvidia-nemotron-3-super-rocm7-nightlies-benchmark-run-4f109605f573 Created 
+ggml_cuda_init: found 1 ROCm devices:
+  Device 0: Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+main: error: failed to load model '/huggingface/hub/models--unsloth--NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/snapshots/036038fb30334a2d56a146c6f0d4871ab5edccbb/UD-Q8_K_XL/NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q8_K_XL-00001-of-00004.gguf'
+
+Error: executing /usr/local/bin/docker-compose run --rm nvidia-nemotron-3-super-rocm7-nightlies-benchmark: exit status 1

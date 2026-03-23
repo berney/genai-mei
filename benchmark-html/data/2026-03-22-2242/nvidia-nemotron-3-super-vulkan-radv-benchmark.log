@@ -1,0 +1,13 @@
+[4m>>>> Executing external compose provider "/usr/local/bin/docker-compose". Please see podman-compose(1) for how to disable this message. <<<<
+
+[0mtime="2026-03-22T22:42:18+11:00" level=warning msg="No services to build"
+time="2026-03-22T22:42:18+11:00" level=warning msg="No services to build"
+ Container genai-mei-nvidia-nemotron-3-super-vulkan-radv-benchmark-run-3c619fe6b863 Creating 
+ Container genai-mei-nvidia-nemotron-3-super-vulkan-radv-benchmark-run-3c619fe6b863 Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+time="2026-03-22T22:43:29+11:00" level=error msg="error waiting for container: unexpected EOF"
+
+Error: executing /usr/local/bin/docker-compose run --rm nvidia-nemotron-3-super-vulkan-radv-benchmark: exit status 125
