@@ -310,20 +310,12 @@ tr:hover td { background: var(--surface2); }
     <div class="filter-panel-body" id="filterPanelBody">
       <div class="filter-row">
         <div class="filter-group">
-          <label>HF Owner</label>
-          <select id="filterHfOwner"><option value="">All</option></select>
-        </div>
-        <div class="filter-group">
-          <label>HF Repo</label>
-          <select id="filterHfRepo"><option value="">All</option></select>
-        </div>
-        <div class="filter-group">
-          <label>HF Revision</label>
-          <select id="filterHfRevision"><option value="">All</option></select>
-        </div>
-        <div class="filter-group">
           <label>Backend</label>
           <select id="filterBackend"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Version</label>
+          <select id="filterVersion"><option value="">All</option></select>
         </div>
         <div class="filter-group">
           <label>Model Family</label>
@@ -334,8 +326,16 @@ tr:hover td { background: var(--surface2); }
           <select id="filterQuant"><option value="">All</option></select>
         </div>
         <div class="filter-group">
-          <label>Version</label>
-          <select id="filterVersion"><option value="">All</option></select>
+          <label>HF Owner</label>
+          <select id="filterHfOwner"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>HF Repo</label>
+          <select id="filterHfRepo"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>HF Revision</label>
+          <select id="filterHfRevision"><option value="">All</option></select>
         </div>
         <div class="filter-group">
           <label>Min Date</label>
@@ -979,6 +979,83 @@ if (typeof Plotly === 'undefined') {
     return backend;
   }
 
+  function getRunsMatchingFilters(except, exceptValue) {
+    // Get candidates for repopulating dropdowns.
+    // Discrete filters (backend, model, quant, version, hf) are respected.
+    // Date range is NOT used for candidate computation — it's a range, not a discrete choice,
+    // and using it would block valid options when the user hasn't explicitly narrowed dates yet.
+    // exceptValue is the new value from the event target (browser may not have updated DOM yet)
+    const vals = {
+      hfOwner: except === 'filterHfOwner' ? exceptValue || '' : $('filterHfOwner').value,
+      hfRepo: except === 'filterHfRepo' ? exceptValue || '' : $('filterHfRepo').value,
+      hfRevision: except === 'filterHfRevision' ? exceptValue || '' : $('filterHfRevision').value,
+      backend: except === 'filterBackend' ? exceptValue || '' : $('filterBackend').value,
+      model: except === 'filterModel' ? exceptValue || '' : $('filterModel').value,
+      quant: except === 'filterQuant' ? exceptValue || '' : $('filterQuant').value,
+      version: except === 'filterVersion' ? exceptValue || '' : $('filterVersion').value,
+    };
+
+    console.log('[GETFILTERS] except:', except, 'vals:', vals);
+
+    return allRuns.filter(run => {
+      if (vals.hfOwner && run._hfOwner !== vals.hfOwner) return false;
+      if (vals.hfRepo && run._hfRepo !== vals.hfRepo) return false;
+      if (vals.hfRevision && run._hfRevision !== vals.hfRevision) return false;
+      if (vals.backend && run.backends !== vals.backend) return false;
+      if (vals.model) {
+        const info = parseModelInfo(run);
+        if (info.family !== vals.model) return false;
+      }
+      if (vals.quant) {
+        const info = parseModelInfo(run);
+        if (info.quant !== vals.quant) return false;
+      }
+      if (vals.version && parseVersion(run) !== vals.version) return false;
+      return true;
+    });
+  }
+
+  function populateAllFromRuns(candidates) {
+    const hfOwners = new Set();
+    const hfRepos = new Set();
+    const hfRevisions = new Set();
+    const backends = new Set();
+    const families = new Set();
+    const quants = new Set();
+    const versions = new Set();
+
+    for (const run of candidates) {
+      if (run._hfOwner) hfOwners.add(run._hfOwner);
+      if (run._hfRepo) hfRepos.add(run._hfRepo);
+      if (run._hfRevision) hfRevisions.add(run._hfRevision);
+      backends.add(run.backends || '');
+      const info = parseModelInfo(run);
+      families.add(info.family);
+      if (info.quant) quants.add(info.quant);
+      versions.add(parseVersion(run));
+    }
+
+    // Populate all dropdowns from candidates
+    ['filterHfOwner', 'filterHfRepo', 'filterHfRevision', 'filterBackend',
+     'filterModel', 'filterQuant', 'filterVersion'].forEach(id => {
+      const vals = id === 'filterHfOwner' ? hfOwners :
+        id === 'filterHfRepo' ? hfRepos :
+        id === 'filterHfRevision' ? hfRevisions :
+        id === 'filterBackend' ? backends :
+        id === 'filterModel' ? families :
+        id === 'filterQuant' ? quants : versions;
+      const sel = $(id);
+      const current = sel.value;
+      populateSelect(id, vals);
+      // Restore current selection if still available
+      if ([...sel.options].some(o => o.value === current)) {
+        sel.value = current;
+      } else {
+        sel.value = '';
+      }
+    });
+  }
+
   function populateFilters() {
     const hfOwners = new Set();
     const hfRepos = new Set();
@@ -1008,29 +1085,6 @@ if (typeof Plotly === 'undefined') {
     populateSelect('filterVersion', versions);
 
     populateDateRange();
-  }
-
-  function populateCascadingFilters() {
-    const owner = $('filterHfOwner').value;
-    const repo = $('filterHfRepo').value;
-
-    // HF Repo cascades on HF Owner
-    const hfRepos = new Set();
-    const hfRevisions = new Set();
-    for (const run of allRuns) {
-      if (owner && run._hfOwner !== owner) continue;
-      if (run._hfRepo) hfRepos.add(run._hfRepo);
-      if (run._hfRevision) hfRevisions.add(run._hfRevision);
-    }
-    populateSelect('filterHfRepo', hfRepos);
-
-    // HF Revision cascades on HF Repo
-    const hfRevs = new Set();
-    for (const run of allRuns) {
-      if (repo && run._hfRepo !== repo) continue;
-      if (run._hfRevision) hfRevs.add(run._hfRevision);
-    }
-    populateSelect('filterHfRevision', hfRevs);
   }
 
   function populateDateRange() {
@@ -1273,6 +1327,7 @@ if (typeof Plotly === 'undefined') {
       responsive: true,
       displayModeBar: false
     });
+    setResponsiveLegend();
   }
 
   function renderRadarChart(container, chartRuns) {
@@ -1349,6 +1404,7 @@ if (typeof Plotly === 'undefined') {
       responsive: true,
       displayModeBar: false
     });
+    setResponsiveLegend();
   }
 
   function renderBoxChart(container, chartRuns) {
@@ -1416,7 +1472,30 @@ if (typeof Plotly === 'undefined') {
       responsive: true,
       displayModeBar: false
     });
+    setResponsiveLegend();
   }
+
+  function setResponsiveLegend() {
+    const plotDiv = document.getElementById('plotDiv');
+    if (!plotDiv || !plotDiv.data) return;
+    const narrow = window.innerWidth < 768;
+    Plotly.relayout(plotDiv.id, {
+      legend: {
+        orientation: narrow ? 'h' : 'v',
+        x: narrow ? 0.5 : 1.02,
+        xanchor: narrow ? 'center' : 'left',
+        y: narrow ? 1.12 : 1,
+        yanchor: 'bottom'
+      },
+      margin: {
+        l: 50, r: narrow ? 20 : 120,
+        t: narrow ? 60 : 30,
+        b: 50
+      }
+    });
+  }
+
+  window.addEventListener('resize', setResponsiveLegend);
 
   // ---- Table ----
 
@@ -1682,28 +1761,30 @@ if (typeof Plotly === 'undefined') {
     $('btnSelectFolder').addEventListener('click', selectFolder);
     $('btnLoadFromServer').addEventListener('click', loadFromServer);
 
-    // Filters
-    $('filterHfOwner').addEventListener('change', () => {
-      $('filterHfRepo').value = '';
-      $('filterHfRevision').value = '';
-      populateCascadingFilters();
-      applyFilters(); saveSettings();
-    });
-    $('filterHfRepo').addEventListener('change', () => {
-      $('filterHfRevision').value = '';
-      populateCascadingFilters();
-      applyFilters(); saveSettings();
-    });
-    ['filterHfRevision', 'filterBackend', 'filterModel', 'filterQuant', 'filterVersion'].forEach(id => {
-      $(id).addEventListener('change', () => { applyFilters(); saveSettings(); });
+    // Filters — all dropdowns cross-constrain each other
+    const filterIds = ['filterHfOwner', 'filterHfRepo', 'filterHfRevision',
+                       'filterBackend', 'filterModel', 'filterQuant', 'filterVersion'];
+    filterIds.forEach(id => {
+      $(id).addEventListener('change', (e) => {
+        // Get candidates from all OTHER filter selections, repopulate all dropdowns,
+        // then apply the full filter set including the changed one
+        // e.target.value is the new value (browser may not have updated DOM yet)
+        const newValue = e.target.value;
+        const candidates = getRunsMatchingFilters(id, newValue);
+        populateAllFromRuns(candidates);
+        applyFilters();
+        saveSettings();
+      });
     });
     // Date inputs: show formatted display, sync on change
     $('filterDateFrom').addEventListener('change', () => {
       setFilterDate('filterDateFrom', $('filterDateFrom').value);
+      populateAllFromRuns(getRunsMatchingFilters('', ''));
       applyFilters(); saveSettings();
     });
     $('filterDateTo').addEventListener('change', () => {
       setFilterDate('filterDateTo', $('filterDateTo').value);
+      populateAllFromRuns(getRunsMatchingFilters('', ''));
       applyFilters(); saveSettings();
     });
     // Click display to open date picker
@@ -1716,12 +1797,16 @@ if (typeof Plotly === 'undefined') {
       if (inp.showPicker) inp.showPicker(); else inp.click();
     });
     $('btnClearFilters').addEventListener('click', () => {
+      $('filterHfOwner').value = '';
+      $('filterHfRepo').value = '';
+      $('filterHfRevision').value = '';
       $('filterBackend').value = '';
       $('filterModel').value = '';
       $('filterQuant').value = '';
       $('filterVersion').value = '';
       $('filterDateFrom').value = '';
       $('filterDateTo').value = '';
+      populateFilters();
       applyFilters(); saveSettings();
     });
 

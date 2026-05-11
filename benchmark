@@ -9,6 +9,9 @@ if [ "$1" = "--dry-run" ]; then
     shift
 fi
 
+# Hide stupid podman warnings
+export PODMAN_COMPOSE_WARNING_LOGS=false
+
 # If arguments supplied
 if [ $# -gt 0 ]; then
     # Use them to filter with ripgrep
@@ -19,7 +22,10 @@ fi
 
 DATETIME=$(date '+%Y-%m-%d-%H%M')
 DIR="benchmark-html/data/${DATETIME}"
-mkdir -p "${DIR}"
+
+if [ "$DRY_RUN" != "true" ]; then
+  mkdir -p "${DIR}"
+fi
 
 for service in $(echo "$SERVICES"); do
     echo "#### $service";
