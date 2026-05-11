@@ -1,58 +1,1890 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benchmark Viewer — llama-bench results</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #242836;
+  --border: #2e3348;
+  --text: #e2e4ed;
+  --text-dim: #8b8fa3;
+  --accent: #6c8cff;
+  --accent-hover: #8ba4ff;
+  --danger: #ff6b6b;
+  --success: #51cf66;
+  --radius: 6px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.container { max-width: 1400px; margin: 0 auto; padding: 16px; }
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.header h1 { font-size: 18px; font-weight: 600; }
+.header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* Buttons */
+button {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+button:hover { background: var(--border); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary:hover { background: var(--accent-hover); }
+button.danger { color: var(--danger); border-color: var(--danger); }
+button.danger:hover { background: var(--danger); color: #fff; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Status bar */
+.status-bar {
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.status-bar .status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+}
+.status-bar .status-dot.ready { background: var(--success); }
+.status-bar .status-dot.loading { background: #ffd43b; animation: pulse 1s infinite; }
+.status-bar .status-dot.error { background: var(--danger); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* Filter panel */
+.filter-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+.filter-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.filter-panel-header h2 { font-size: 14px; font-weight: 600; }
+.filter-panel-body { padding: 0 14px 12px; }
+.filter-panel-body.collapsed { display: none; }
+
+.filter-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 140px;
+}
+.filter-group label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.filter-group select, .filter-group input {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: inherit;
+  width: 100%;
+}
+.filter-group select:focus, .filter-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Chart controls */
+.chart-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.chart-controls-left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.chart-controls-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* Chart area */
+.chart-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  min-height: 400px;
+  position: relative;
+}
+.chart-container .plotly-chart { width: 100%; }
+.chart-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: var(--text-dim);
+  font-size: 15px;
+}
+
+/* Data table */
+.table-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.table-header h2 { font-size: 14px; font-weight: 600; }
+.table-body { overflow: auto; max-height: 500px; }
+.table-body.collapsed { display: none; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th {
+  position: sticky;
+  top: 0;
+  background: var(--surface2);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+th:hover { color: var(--text); }
+td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tr:hover td { background: var(--surface2); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+.modal h2 { font-size: 16px; margin-bottom: 12px; }
+.modal pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filter-group { min-width: 100%; }
+  .chart-container { padding: 8px; }
+}
+</style>
 </head>
 <body>
-  <select id="engineFilter"><option>All</option></select>
-  <select id="modelFilter"><option>All</option></select>
-  <canvas id="perfChart"></canvas>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1>Benchmark Viewer</h1>
+    <div class="header-actions">
+      <button id="btnSelectFolder" class="primary">Select Data Folder</button>
+      <label style="display:flex;align-items:center;gap:4px;font-size:13px;">
+        Data path:
+        <input type="text" id="dataPath" value="/data/" style="width:100px;background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:4px 8px;border-radius:var(--radius);font-size:13px;font-family:monospace;">
+      </label>
+      <button id="btnLoadFromServer">Load from Server</button>
+      <button id="btnShare">Share</button>
+      <button id="btnResetSettings" class="danger">Reset Settings</button>
+      <label style="display:flex;align-items:center;gap:4px;font-size:13px;">
+        Auto-refresh
+        <select id="autoRefreshInterval">
+          <option value="0">Off</option>
+          <option value="5000">5s</option>
+          <option value="10000" selected>10s</option>
+          <option value="30000">30s</option>
+          <option value="60000">1m</option>
+        </select>
+      </label>
+    </div>
+  </div>
 
-  <script>
-    let allData = [];  // Combined dataset
+  <!-- Status bar -->
+  <div class="status-bar" id="statusBar">
+    <span class="status-dot" id="statusDot"></span>
+    <span id="statusText">Select a data folder or load from server to begin</span>
+  </div>
 
-    // Load all JSON files recursively (or list explicitly)
-    async function loadData() {
-      const dates = ['2026-01-15', '2026-02-01'];  // Or dynamically list folders
-      for (const date of dates) {
-        const files = await Promise.all([
-          fetch(`data/${date}/rocm.json`).then(r => r.json()),
-          fetch(`data/${date}/vulkan-radv.json`).then(r => r.json()),
-          // Add more...
-        ]);
-        files.forEach(file => allData.push(...file.results));  // Assuming array of runs
+  <!-- Filter panel -->
+  <div class="filter-panel" id="filterPanel">
+    <div class="filter-panel-header" id="filterPanelHeader">
+      <h2>Filters</h2>
+      <span id="filterToggle">▼</span>
+    </div>
+    <div class="filter-panel-body" id="filterPanelBody">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>HF Owner</label>
+          <select id="filterHfOwner"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>HF Repo</label>
+          <select id="filterHfRepo"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>HF Revision</label>
+          <select id="filterHfRevision"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Backend</label>
+          <select id="filterBackend"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Model Family</label>
+          <select id="filterModel"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Quantization</label>
+          <select id="filterQuant"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Version</label>
+          <select id="filterVersion"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Min Date</label>
+          <input type="text" id="filterDateFromDisplay" readonly style="cursor:pointer;" title="Click to pick date">
+          <input type="date" id="filterDateFrom" style="display:none;">
+        </div>
+        <div class="filter-group">
+          <label>Max Date</label>
+          <input type="text" id="filterDateToDisplay" readonly style="cursor:pointer;" title="Click to pick date">
+          <input type="date" id="filterDateTo" style="display:none;">
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button id="btnClearFilters">Clear Filters</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart controls -->
+  <div class="chart-controls">
+    <div class="chart-controls-left">
+      <label style="display:flex;align-items:center;gap:4px;font-size:13px;">
+        Mode:
+        <select id="chartMode">
+          <option value="all">All (PP + Gen)</option>
+          <option value="prompt">Prompt Processing (n_gen=0)</option>
+          <option value="gen" selected>Token Generation (n_gen>0)</option>
+        </select>
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:13px;">
+        X-axis:
+        <select id="chartXAxis">
+          <option value="n_prompt">Prompt Length</option>
+          <option value="n_gen">Gen Length</option>
+          <option value="model_size">Model Size</option>
+        </select>
+      </label>
+      <button id="btnResetXAxis" style="display:none;font-size:11px;">Reset X-axis</button>
+      <label style="display:flex;align-items:center;gap:4px;font-size:13px;">
+        Y-axis:
+        <select id="chartYAxis">
+          <option value="avg_ts">Tokens/sec</option>
+          <option value="avg_ns">Ns/token</option>
+          <option value="stddev_ts">Stddev (tgs)</option>
+        </select>
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:13px;">
+        Chart:
+        <select id="chartType">
+          <option value="line">Line</option>
+          <option value="bar">Bar</option>
+          <option value="scatter">Scatter</option>
+          <option value="radar">Radar</option>
+          <option value="box">Box</option>
+        </select>
+      </label>
+    </div>
+    <div class="chart-controls-right">
+      <button id="btnExportPNG">Export PNG</button>
+      <button id="btnExportSVG">Export SVG</button>
+      <button id="btnExportTSV">Export TSV</button>
+      <button id="btnGenMd">Generate benchmarks.md</button>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-container" id="chartContainer">
+    <div class="chart-placeholder" id="chartPlaceholder">
+      Select a data folder and load results to see charts
+    </div>
+  </div>
+
+ <!-- Data table -->
+  <div class="table-container" id="tableContainer">
+    <div class="table-header" id="tableHeader">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <h2>Data Table (<span id="tableCount">0</span> rows)</h2>
+        <button id="btnColumns" style="font-size:11px;">Columns</button>
+      </div>
+      <span id="tableToggle">▼</span>
+    </div>
+    <div class="table-body" id="tableBody">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th data-sort="test_time">Date ↓</th>
+            <th data-sort="model_type">Model</th>
+            <th data-sort="backends">Backend</th>
+            <th data-sort="n_prompt">Prompt</th>
+            <th data-sort="n_gen">Gen</th>
+            <th data-sort="avg_ts">tgs</th>
+            <th data-sort="stddev_ts">Stddev</th>
+            <th data-sort="n_threads">Threads</th>
+            <th data-sort="n_gpu_layers">GPU Layers</th>
+          </tr>
+        </thead>
+        <tbody id="dataTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Column toggle modal -->
+<div class="modal-overlay hidden" id="columnModalOverlay">
+  <div class="modal">
+    <h2>Table Columns</h2>
+    <div id="columnToggles" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;"></div>
+    <div class="modal-actions">
+      <button id="btnSelectAllCols">Select All</button>
+      <button id="btnDeselectAllCols">Deselect All</button>
+      <button id="btnCloseCols">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Modal</h2>
+    <pre id="modalContent"></pre>
+    <div class="modal-actions">
+      <button id="btnCopyModal">Copy</button>
+      <button id="btnCloseModal">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Plotly.js CDN with fallback -->
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@3.2.0/plotly.min.js"></script>
+<script>
+if (typeof Plotly === 'undefined') {
+  var _s = document.createElement('script');
+  _s.src = 'plotly.min.js';
+  document.head.appendChild(_s);
+}
+</script>
+
+<script>
+// ============================================================
+// Benchmark Viewer — Main Application
+// ============================================================
+
+(function() {
+  'use strict';
+
+  // ---- State ----
+  let allRuns = [];        // All loaded benchmark runs (flattened)
+  let filteredRuns = [];   // Runs after filtering
+  let dataMode = 'none';   // 'http' | 'picker' | 'none'
+  let directoryHandle = null;
+  let refreshTimer = null;
+  let sortColumn = 'test_time';
+  let sortAsc = false;
+
+  // ---- Column definitions ----
+  const COLUMNS = [
+    { id: 'date',         label: 'Date',         key: '_sourceDate',        defaultVisible: true },
+    { id: 'model',        label: 'Model',        key: 'model_type',         defaultVisible: true },
+    { id: 'hf_owner',     label: 'HF Owner',     key: '_hfOwner',           defaultVisible: false },
+    { id: 'hf_repo',      label: 'HF Repo',      key: '_hfRepo',            defaultVisible: false },
+    { id: 'hf_revision',  label: 'HF Revision',  key: '_hfRevision',        defaultVisible: false },
+    { id: 'backend',      label: 'Backend',      key: 'backends',           defaultVisible: true },
+    { id: 'n_prompt',     label: 'Prompt',       key: 'n_prompt',           defaultVisible: true },
+    { id: 'n_gen',        label: 'Gen',          key: 'n_gen',              defaultVisible: true },
+    { id: 'avg_ts',       label: 'tgs',          key: 'avg_ts',             defaultVisible: true },
+    { id: 'stddev_ts',    label: 'Stddev',       key: 'stddev_ts',          defaultVisible: true },
+    { id: 'n_threads',    label: 'Threads',      key: 'n_threads',          defaultVisible: false },
+    { id: 'n_gpu_layers', label: 'GPU Layers',   key: 'n_gpu_layers',       defaultVisible: false },
+  ];
+
+  // Filter dimensions
+  const FILTERS = ['hf_owner', 'hf_repo', 'hf_revision', 'backend', 'model', 'quant', 'version', 'dateFrom', 'dateTo'];
+
+  // Column visibility state (default visible columns)
+  let columnVisibility = {};
+  COLUMNS.forEach(col => { columnVisibility[col.id] = col.defaultVisible; });
+
+  // ---- Persistence key ----
+  const STORAGE_KEY = 'benchmark-viewer-settings';
+
+  // ---- Settings helpers ----
+
+  function loadSettings() {
+    const keys = ['chartMode', 'chartType', 'chartXAxis', 'chartYAxis', 'filterBackend', 'filterModel',
+                'filterQuant', 'filterVersion', 'filterDateFrom', 'filterDateTo', 'dataPath'];
+    let settings = {};
+
+    // 1. URL params (highest priority — shareable)
+    const params = new URLSearchParams(window.location.search);
+    for (const key of keys) {
+      if (params.has(key)) {
+        settings[key] = params.get(key);
       }
-      populateFilters();
-      updateChart();
     }
 
-    function populateFilters() {
-      const engines = [...new Set(allData.map(d => d.engine))];
-      document.getElementById('engineFilter').innerHTML =
-        engines.map(e => `<option>${e}</option>`).join('') + '<option>All</option>';
-      // Same for models, quants...
+    // 2. Hash (short, shareable, base64 encoded JSON)
+    if (Object.keys(settings).length === 0) {
+      const hash = window.location.hash.slice(1);
+      if (hash) {
+        try {
+          settings = JSON.parse(atob(hash));
+        } catch (e) { /* ignore */ }
+      }
     }
 
-    // Filter + Chart update
-    function updateChart() {
-      const engine = document.getElementById('engineFilter').value;
-      const filtered = allData.filter(d =>
-        (!engine || d.engine === engine) /* + model/quant/date filters */
-      );
+    // 3. localStorage (convenience — not shareable)
+    if (Object.keys(settings).length === 0) {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          settings = JSON.parse(atob(stored));
+        }
+      } catch (e) { /* ignore */ }
+    }
 
-      const ctx = document.getElementById('perfChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: filtered.map(d => `${d.model} (${d.quant})`),
-          datasets: [{ label: 'Tokens/sec', data: filtered.map(d => d.speed) }]
-        },
-        options: { responsive: true }
+    return settings;
+  }
+
+  function applySettings(settings) {
+    for (const [key, val] of Object.entries(settings)) {
+      const el = $(key);
+      if (el) {
+        if (el.tagName === 'SELECT' || el.tagName === 'INPUT') {
+          el.value = val;
+        }
+      }
+    }
+    // Apply column visibility
+    if (settings.columns) {
+      for (const col of COLUMNS) {
+        if (settings.columns[col.id] !== undefined) {
+          columnVisibility[col.id] = settings.columns[col.id];
+        }
+      }
+    }
+  }
+
+  function buildHash() {
+    const settings = { columns: {} };
+    const keys = ['chartMode', 'chartType', 'chartXAxis', 'chartYAxis', 'filterHfOwner', 'filterHfRepo', 'filterHfRevision',
+                'filterBackend', 'filterModel', 'filterQuant', 'filterVersion', 'filterDateFrom', 'filterDateTo', 'dataPath'];
+    for (const key of keys) {
+      const el = $(key);
+      if (el && el.value) {
+        settings[key] = el.value;
+      }
+    }
+    for (const col of COLUMNS) {
+      if (columnVisibility[col.id]) {
+        settings.columns[col.id] = true;
+      }
+    }
+    return btoa(JSON.stringify(settings));
+  }
+
+  function saveSettings() {
+    const hash = buildHash();
+    try {
+      localStorage.setItem(STORAGE_KEY, hash);
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  function shareSettings() {
+    const hash = buildHash();
+    if (hash) {
+      window.location.hash = hash;
+    } else {
+      window.location.hash = '';
+    }
+    const url = window.location.href;
+    copyText(url, $('btnShare'));
+  }
+
+  function copyText(text, btn) {
+    // Try clipboard API first (requires secure context)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Share', 2000); }
+      }).catch(() => {
+        // clipboard API failed — fallback below
+        copyTextFallback(text, btn);
       });
+    } else {
+      copyTextFallback(text, btn);
+    }
+  }
+
+  function copyTextFallback(text, btn) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Share', 2000); }
+    } catch (e) {
+      showModal('Copy', text);
+    }
+    document.body.removeChild(textarea);
+  }
+
+  function showUrlFallback(url) {
+    showModal('Share Link', url);
+  }
+
+  function clearSettings() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    window.location.hash = '';
+    window.history.replaceState(null, '', window.location.pathname);
+    // Reset all controls to defaults (dates stay — they come from the data)
+    $('chartMode').value = 'gen';
+    $('chartType').value = 'line';
+    $('chartXAxis').value = 'n_prompt';
+    $('chartYAxis').value = 'avg_ts';
+    $('filterHfOwner').value = '';
+    $('filterHfRepo').value = '';
+    $('filterHfRevision').value = '';
+    $('filterBackend').value = '';
+    $('filterModel').value = '';
+    $('filterQuant').value = '';
+    $('filterVersion').value = '';
+    $('dataPath').value = '/data/';
+    $('autoRefreshInterval').value = '10000';
+    // Repopulate date range from data
+    populateDateRange();
+    applyFilters();
+  }
+
+  // ---- DOM refs ----
+  const $ = id => document.getElementById(id);
+
+  // ---- Data loading ----
+
+  async function loadFromServer() {
+    setStatus('loading', 'Loading from server...');
+    try {
+      // Resolve data path relative to the current page URL
+      let dataPath = $('dataPath').value.replace(/\/$/, '');
+      const baseUrl = window.location.origin + window.location.pathname;
+      const resolved = new URL(dataPath + '/', baseUrl);
+      const dataUrl = resolved.href;
+
+      const resp = await fetch(dataUrl);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const html = await resp.text();
+
+      // Parse <a href="..."> links
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const links = doc.querySelectorAll('a[href]');
+
+      const dirs = [];
+      const jsonFiles = [];
+
+      for (const a of links) {
+        const href = a.getAttribute('href');
+        if (!href) continue;
+
+        // Resolve href relative to the data URL
+        let absUrl;
+        try {
+          absUrl = new URL(href, dataUrl).href;
+        } catch {
+          continue;
+        }
+
+        // Handle nested directories
+        if (absUrl.endsWith('/')) {
+          dirs.push(absUrl);
+        } else if (absUrl.endsWith('.json')) {
+          jsonFiles.push(absUrl);
+        }
+      }
+
+      // Also fetch subdirectories
+      for (const dirUrl of dirs) {
+        try {
+          const subResp = await fetch(dirUrl);
+          if (!subResp.ok) continue;
+          const subHtml = await subResp.text();
+          const subDoc = parser.parseFromString(subHtml, 'text/html');
+          for (const a of subDoc.querySelectorAll('a[href]')) {
+            const href = a.getAttribute('href');
+            if (!href) continue;
+            try {
+              const jsonUrl = new URL(href, dirUrl).href;
+              if (jsonUrl.endsWith('.json')) {
+                jsonFiles.push(jsonUrl);
+              }
+            } catch {
+              // skip
+            }
+          }
+        } catch (e) {
+          // skip
+        }
+      }
+
+      if (jsonFiles.length === 0) {
+        setStatus('error', 'No JSON files found in ' + dataPath);
+        return;
+      }
+
+      // Fetch all JSON files
+      setStatus('loading', `Loading ${jsonFiles.length} files...`);
+      const results = [];
+      for (const url of jsonFiles) {
+        try {
+          const r = await fetch(url);
+          if (!r.ok) continue;
+          const data = await r.json();
+          if (Array.isArray(data)) {
+            // Extract date from URL path
+            const dateMatch = url.match(/(\d{4}-\d{2}-\d{2})/);
+            const dateStr = dateMatch ? dateMatch[1] : '';
+            for (const run of data) {
+              run._sourceDate = dateStr;
+              run._sourceFile = url;
+              enrichRun(run);
+              results.push(run);
+            }
+          }
+        } catch (e) {
+          // skip bad files
+        }
+      }
+
+      allRuns = results;
+      filteredRuns = results.slice();
+      dataMode = 'http';
+      setStatus('ready', `Loaded ${allRuns.length} runs from ${jsonFiles.length} files`);
+      populateFilters();
+      applyFilters();
+    } catch (e) {
+      setStatus('error', `Failed to load from server: ${e.message}`);
+    }
+  }
+
+  async function selectFolder() {
+    if (!window.showDirectoryPicker) {
+      setStatus('error', 'File System Access API not supported. Use a modern browser (Chrome/Edge).');
+      return;
     }
 
-    loadData();  // Auto-run
-  </script>
+    try {
+      const handle = await window.showDirectoryPicker();
+      directoryHandle = handle;
+      setStatus('loading', 'Reading files...');
+
+      const results = [];
+      let fileCount = 0;
+
+      for await (const entry of handle.values()) {
+        if (entry.kind === 'directory') {
+          // Scan subdirectories for JSON files
+          for await (const subEntry of entry.values()) {
+            if (subEntry.kind === 'file' && subEntry.name.endsWith('.json')) {
+              fileCount++;
+              try {
+                const file = await subEntry.getFile();
+                const text = await file.text();
+                const data = JSON.parse(text);
+                if (Array.isArray(data)) {
+                  const dateStr = entry.name;
+                  for (const run of data) {
+                    run._sourceDate = dateStr;
+                    run._sourceFile = `${entry.name}/${subEntry.name}`;
+                    enrichRun(run);
+                    results.push(run);
+                  }
+                }
+              } catch (e) {
+                // skip parse errors
+              }
+            }
+          }
+        }
+      }
+
+      if (results.length === 0) {
+        setStatus('error', 'No JSON files found in selected folder');
+        return;
+      }
+
+      allRuns = results;
+      filteredRuns = results.slice();
+      dataMode = 'picker';
+      setStatus('ready', `Loaded ${allRuns.length} runs from ${fileCount} files`);
+      populateFilters();
+      applyFilters();
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        setStatus('error', `Failed to read folder: ${e.message}`);
+      }
+    }
+  }
+
+  async function refreshData() {
+    if (dataMode === 'picker' && directoryHandle) {
+      const results = [];
+      let fileCount = 0;
+
+      for await (const entry of directoryHandle.values()) {
+        if (entry.kind === 'directory') {
+          for await (const subEntry of entry.values()) {
+            if (subEntry.kind === 'file' && subEntry.name.endsWith('.json')) {
+              fileCount++;
+              try {
+                const file = await subEntry.getFile();
+                const text = await file.text();
+                const data = JSON.parse(text);
+                if (Array.isArray(data)) {
+                  for (const run of data) {
+                    run._sourceDate = entry.name;
+                    run._sourceFile = `${entry.name}/${subEntry.name}`;
+                    enrichRun(run);
+                    results.push(run);
+                  }
+                }
+              } catch (e) {}
+            }
+          }
+        }
+      }
+
+      if (results.length !== allRuns.length) {
+        allRuns = results;
+        filteredRuns = results.slice();
+        populateFilters();
+        applyFilters();
+      }
+    } else if (dataMode === 'http') {
+      await loadFromServer();
+    }
+  }
+
+  // ---- Filtering ----
+
+  function parseModelInfo(run) {
+    // Try to extract model family, size, quant from model_type
+    const mt = run.model_type || '';
+    // Pattern: "qwen35moe 35B.A3B Q8_0" or "gpt-oss 120B BF16" or "qwen3 4B Q6_K"
+    const parts = mt.split(/\s+/);
+    let family = parts[0] || '';
+    let size = '';
+    let quant = '';
+
+    // Find quant (usually last part, e.g. Q8_0, Q6_K, BF16)
+    for (let i = parts.length - 1; i >= 1; i--) {
+      if (parts[i].match(/^[QqBb]/)) {
+        quant = parts[i];
+        size = parts.slice(1, i).join(' ');
+        break;
+      }
+    }
+    if (!size) {
+      size = parts.slice(1).join(' ');
+    }
+
+    return { family, size, quant };
+  }
+
+  function enrichRun(run) {
+    // Parse model_filename into structured fields
+    const fn = parseModelFilename(run.model_filename);
+    run._hfOwner = fn.owner;
+    run._hfRepo = fn.repo;
+    run._hfModelName = fn.model_name;
+    run._hfRevision = fn.revision;
+    return run;
+  }
+
+  function parseModelFilename(filename) {
+    // Example: "/huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-GGUF/snapshots/a483e9e6cbd595906af30beda3187c2663a1118c/Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf"
+    if (!filename) return { owner: '', repo: '', model_name: '', revision: '' };
+
+    const parts = filename.split('/');
+    let model_name = '';
+    let revision = '';
+
+    // Find the filename (last non-empty part)
+    for (let i = parts.length - 1; i >= 0; i--) {
+      if (parts[i].endsWith('.gguf')) {
+        model_name = parts[i].replace(/\.gguf$/, '');
+        break;
+      }
+    }
+
+    // Find the snapshot hash (directory containing .gguf files)
+    for (let i = parts.length - 2; i >= 0; i--) {
+      if (parts[i] === 'snapshots') {
+        // Next part is the revision hash
+        revision = (parts[i + 1] || '').substring(0, 7);
+        break;
+      }
+    }
+
+    // Find models--X--Y pattern
+    let owner = '';
+    let repo = '';
+    for (const part of parts) {
+      const m = part.match(/^models--(.+?)--(.+)$/);
+      if (m) {
+        owner = m[1];
+        repo = m[2];
+        break;
+      }
+    }
+
+    return { owner, repo, model_name, revision };
+  }
+
+  function parseVersion(run) {
+    // Parse version from filename or backends field
+    // e.g. "rocm-6.4.4", "rocm-7.2", "rocm7-nightlies", "vulkan-amdvlk", "vulkan-radv"
+    const file = run._sourceFile || '';
+    const backend = run.backends || '';
+
+    // Try to extract version-like patterns
+    const versionPatterns = [
+      /rocm[/-]([\d.]+)/,
+      /rocm[/-](nightlies)/,
+      /vulkan-([a-z]+)/,
+      /rocm7/,
+    ];
+
+    for (const pat of versionPatterns) {
+      const m = file.match(pat);
+      if (m) return m[1] || m[0];
+    }
+
+    // Fallback: use backends as version
+    if (backend && !backend.includes('ROCm') && !backend.includes('Vulkan')) {
+      return backend;
+    }
+
+    return backend;
+  }
+
+  function populateFilters() {
+    const hfOwners = new Set();
+    const hfRepos = new Set();
+    const hfRevisions = new Set();
+    const backends = new Set();
+    const families = new Set();
+    const quants = new Set();
+    const versions = new Set();
+
+    for (const run of allRuns) {
+      if (run._hfOwner) hfOwners.add(run._hfOwner);
+      if (run._hfRepo) hfRepos.add(run._hfRepo);
+      if (run._hfRevision) hfRevisions.add(run._hfRevision);
+      backends.add(run.backends || '');
+      const info = parseModelInfo(run);
+      families.add(info.family);
+      if (info.quant) quants.add(info.quant);
+      versions.add(parseVersion(run));
+    }
+
+    populateSelect('filterHfOwner', hfOwners);
+    populateSelect('filterHfRepo', hfRepos);
+    populateSelect('filterHfRevision', hfRevisions);
+    populateSelect('filterBackend', backends);
+    populateSelect('filterModel', families);
+    populateSelect('filterQuant', quants);
+    populateSelect('filterVersion', versions);
+
+    populateDateRange();
+  }
+
+  function populateCascadingFilters() {
+    const owner = $('filterHfOwner').value;
+    const repo = $('filterHfRepo').value;
+
+    // HF Repo cascades on HF Owner
+    const hfRepos = new Set();
+    const hfRevisions = new Set();
+    for (const run of allRuns) {
+      if (owner && run._hfOwner !== owner) continue;
+      if (run._hfRepo) hfRepos.add(run._hfRepo);
+      if (run._hfRevision) hfRevisions.add(run._hfRevision);
+    }
+    populateSelect('filterHfRepo', hfRepos);
+
+    // HF Revision cascades on HF Repo
+    const hfRevs = new Set();
+    for (const run of allRuns) {
+      if (repo && run._hfRepo !== repo) continue;
+      if (run._hfRevision) hfRevs.add(run._hfRevision);
+    }
+    populateSelect('filterHfRevision', hfRevs);
+  }
+
+  function populateDateRange() {
+    const dates = allRuns.map(r => r._sourceDate).filter(Boolean);
+    if (dates.length > 0) {
+      dates.sort();
+      setFilterDate('filterDateFrom', dates[0]);
+      setFilterDate('filterDateTo', dates[dates.length - 1]);
+    }
+  }
+
+  function setFilterDate(inputId, dateStr) {
+    const input = $(inputId);
+    const display = $(inputId + 'Display');
+    if (dateStr) {
+      input.value = dateStr;
+      display.value = formatDate(dateStr);
+    } else {
+      input.value = '';
+      display.value = '';
+    }
+  }
+
+  function formatDate(dateStr) {
+    // Convert "2026-01-15" to "15-Jan-2026"
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${day}-${months[parseInt(month, 10) - 1]}-${year}`;
+  }
+
+  function populateSelect(id, values) {
+    const sel = $(id);
+    const current = sel.value;
+    sel.innerHTML = '<option value="">All</option>';
+    for (const v of [...values].sort()) {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      sel.appendChild(opt);
+    }
+    sel.value = current;
+  }
+
+  function applyFilters() {
+    const hfOwner = $('filterHfOwner').value;
+    const hfRepo = $('filterHfRepo').value;
+    const hfRevision = $('filterHfRevision').value;
+    const backend = $('filterBackend').value;
+    const model = $('filterModel').value;
+    const quant = $('filterQuant').value;
+    const version = $('filterVersion').value;
+    const dateFrom = $('filterDateFrom').value;
+    const dateTo = $('filterDateTo').value;
+
+    filteredRuns = allRuns.filter(run => {
+      if (hfOwner && run._hfOwner !== hfOwner) return false;
+      if (hfRepo && run._hfRepo !== hfRepo) return false;
+      if (hfRevision && run._hfRevision !== hfRevision) return false;
+      if (backend && run.backends !== backend) return false;
+      if (model) {
+        const info = parseModelInfo(run);
+        if (info.family !== model) return false;
+      }
+      if (quant) {
+        const info = parseModelInfo(run);
+        if (info.quant !== quant) return false;
+      }
+      if (version && parseVersion(run) !== version) return false;
+      if (dateFrom && run._sourceDate < dateFrom) return false;
+      if (dateTo && run._sourceDate > dateTo) return false;
+      return true;
+    });
+
+    updateTable();
+    renderChart();
+  }
+
+  // ---- Chart rendering ----
+
+  function getGroupKey(run) {
+    // Create a unique identifier for grouping runs
+    const info = parseModelInfo(run);
+    const version = parseVersion(run);
+    return `${info.family} ${info.size} ${info.quant} (${run.backends} ${version})`.trim();
+  }
+
+  function renderChart() {
+    const container = $('chartContainer');
+    const placeholder = $('chartPlaceholder');
+
+    if (filteredRuns.length === 0) {
+      container.innerHTML = '<div class="chart-placeholder">No data matches current filters</div>';
+      return;
+    }
+
+    // Apply mode filter
+    const mode = $('chartMode').value;
+    const chartRuns = filteredRuns.filter(run => {
+      if (mode === 'prompt') return (run.n_prompt || 0) > 0 && (run.n_gen || 0) === 0;
+      if (mode === 'gen') return (run.n_prompt || 0) === 0 && (run.n_gen || 0) > 0;
+      return true; // 'all'
+    });
+
+    if (chartRuns.length === 0) {
+      container.innerHTML = '<div class="chart-placeholder">No ' + (mode === 'prompt' ? 'prompt processing' : 'token generation') + ' data matches current filters</div>';
+      return;
+    }
+
+    const chartType = $('chartType').value;
+
+    // Clear previous chart
+    if (typeof Plotly !== 'undefined') {
+      Plotly.purge(container);
+    }
+
+    if (chartType === 'radar') {
+      renderRadarChart(container, chartRuns);
+    } else if (chartType === 'box') {
+      renderBoxChart(container, chartRuns);
+    } else {
+      renderGroupedChart(container, chartRuns);
+    }
+  }
+
+  function renderGroupedChart(container, chartRuns) {
+    const xAxis = $('chartXAxis').value;
+    const yAxis = $('chartYAxis').value;
+    const chartType = $('chartType').value;
+
+    // Group runs by unique config (model + backend + version)
+    const groups = {};
+    for (const run of chartRuns) {
+      const key = getGroupKey(run);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(run);
+    }
+
+    const groupNames = Object.keys(groups);
+    const colors = [
+      '#6c8cff', '#51cf66', '#ffd43b', '#ff6b6b', '#cc5de8',
+      '#20c997', '#ff922b', '#339af0', '#f06595', '#a9e34b'
+    ];
+
+    const traces = groupNames.map((name, i) => {
+      const runs = groups[name];
+
+      if (xAxis === 'model_size') {
+        // Scatter plot
+        return {
+          type: 'scatter',
+          mode: 'markers',
+          name: name,
+          x: runs.map(r => r.model_size / 1e9), // GB
+          y: runs.map(r => r[yAxis] || 0),
+          text: runs.map(r =>
+            `${r.model_type}<br>prompt=${r.n_prompt} gen=${r.n_gen}<br>tgs=${r.avg_ts.toFixed(1)} ±${r.stddev_ts.toFixed(1)}`
+          ),
+          marker: { size: 8, color: colors[i % colors.length] },
+          hovertemplate: '%{text}<extra></extra>'
+        };
+      }
+
+      // Line or bar: group by x-axis value
+      const xValues = [...new Set(runs.map(r => r[xAxis] || 0))].sort((a, b) => a - b);
+
+      if (chartType === 'bar') {
+        // Grouped bar: one trace per x-value within this group
+        const xLabels = xValues.map(v => v === 0 ? 'gen' : `${v}`);
+        return {
+          type: 'bar',
+          name: name,
+          x: xLabels,
+          y: xValues.map(xv => {
+            const match = runs.filter(r => (r[xAxis] || 0) === xv);
+            return match.length > 0 ? match[0][yAxis] : 0;
+          }),
+          text: runs.map(r =>
+            `${r.model_type}<br>x=${r[xAxis]} y=${(r[yAxis] || 0).toFixed(1)}<br>prompt=${r.n_prompt} gen=${r.n_gen}`
+          ),
+          hovertemplate: '%{text}<extra>%{name}</extra>'
+        };
+      }
+
+      // Line chart
+      return {
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: name,
+        x: xValues,
+        y: xValues.map(xv => {
+          const match = runs.filter(r => (r[xAxis] || 0) === xv);
+          return match.length > 0 ? match[0][yAxis] : null;
+        }),
+        text: runs.map(r =>
+          `${r.model_type}<br>x=${r[xAxis]} y=${(r[yAxis] || 0).toFixed(1)}<br>prompt=${r.n_prompt} gen=${r.n_gen}`
+        ),
+        line: { color: colors[i % colors.length], width: 2 },
+        marker: { size: 6, color: colors[i % colors.length] },
+        hovertemplate: '%{text}<extra>%{name}</extra>'
+      };
+    });
+
+    const layout = {
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { color: '#e2e4ed', family: '-apple-system, BlinkMacSystemFont, monospace' },
+      margin: { l: 60, r: 20, t: 30, b: 60 },
+      xaxis: {
+        title: xAxis === 'model_size' ? 'Model Size (GB)' :
+               xAxis === 'n_prompt' ? 'Prompt Length' : 'Gen Length',
+        tickangle: xAxis === 'model_size' ? 0 : -30,
+        gridcolor: '#2e3348',
+        zerolinecolor: '#2e3348'
+      },
+      yaxis: {
+        title: yAxis === 'avg_ts' ? 'Tokens/sec' :
+               yAxis === 'avg_ns' ? 'Ns/token' : 'Stddev (tokens/sec)',
+        gridcolor: '#2e3348',
+        zerolinecolor: '#2e3348'
+      },
+      legend: {
+        bgcolor: 'rgba(0,0,0,0)',
+        bordercolor: '#2e3348',
+        font: { size: 11 }
+      },
+      hoverlabel: {
+        bgcolor: '#1a1d27',
+        bordercolor: '#2e3348',
+        font: { color: '#e2e4ed', size: 12 }
+      }
+    };
+
+    if (chartType === 'bar') {
+      layout.barmode = 'group';
+    }
+
+    container.innerHTML = '<div class="plotly-chart" id="plotDiv"></div>';
+    Plotly.newPlot('plotDiv', traces, layout, {
+      responsive: true,
+      displayModeBar: false
+    });
+  }
+
+  function renderRadarChart(container, chartRuns) {
+    const yAxis = $('chartYAxis').value;
+
+    // Group by config, aggregate metrics for radar
+    const groups = {};
+    for (const run of chartRuns) {
+      const key = getGroupKey(run);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(run);
+    }
+
+    const groupNames = Object.keys(groups);
+    if (groupNames.length === 0) return;
+
+    // For radar: use prompt lengths as categories, y-axis values as metrics
+    // If multiple runs per config, average them
+    const categories = [...new Set(chartRuns.map(r => r.n_prompt || 0))].sort((a, b) => a - b);
+    const colors = [
+      '#6c8cff', '#51cf66', '#ffd43b', '#ff6b6b', '#cc5de8',
+      '#20c997', '#ff922b', '#339af0', '#f06595', '#a9e34b'
+    ];
+
+    const traces = groupNames.map((name, i) => {
+      const runs = groups[name];
+      const values = categories.map(cat => {
+        const match = runs.filter(r => (r.n_prompt || 0) === cat);
+        return match.length > 0 ? match[0][yAxis] : 0;
+      });
+
+      return {
+        type: 'scatterpolar',
+        r: values,
+        theta: categories.map(c => c === 0 ? 'gen' : `${c}`),
+        name: name,
+        fill: 'toself',
+        fillColor: colors[i % colors.length] + '33',
+        line: { color: colors[i % colors.length] },
+        hovertemplate: `${name}<br>prompt=%{theta}: %{r:.1f}<extra></extra>`
+      };
+    });
+
+    const layout = {
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { color: '#e2e4ed', family: 'monospace' },
+      margin: { l: 40, r: 40, t: 30, b: 40 },
+      polar: {
+        angularaxis: {
+          tickcolor: '#2e3348',
+          tickfont: { size: 11 }
+        },
+        radialaxis: {
+          tickcolor: '#2e3348',
+          tickfont: { size: 11 },
+          gridcolor: '#2e3348'
+        }
+      },
+      legend: {
+        bgcolor: 'rgba(0,0,0,0)',
+        bordercolor: '#2e3348',
+        font: { size: 11 }
+      },
+      hoverlabel: {
+        bgcolor: '#1a1d27',
+        bordercolor: '#2e3348',
+        font: { color: '#e2e4ed', size: 12 }
+      }
+    };
+
+    container.innerHTML = '<div class="plotly-chart" id="plotDiv"></div>';
+    Plotly.newPlot('plotDiv', traces, layout, {
+      responsive: true,
+      displayModeBar: false
+    });
+  }
+
+  function renderBoxChart(container, chartRuns) {
+    const yAxis = $('chartYAxis').value;
+
+    // Group by config, show distribution of y-axis values
+    const groups = {};
+    for (const run of chartRuns) {
+      const key = getGroupKey(run);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(run);
+    }
+
+    const groupNames = Object.keys(groups).sort();
+    if (groupNames.length === 0) return;
+
+    const colors = [
+      '#6c8cff', '#51cf66', '#ffd43b', '#ff6b6b', '#cc5de8',
+      '#20c997', '#ff922b', '#339af0', '#f06595', '#a9e34b'
+    ];
+
+    const traces = groupNames.map((name, i) => {
+      const runs = groups[name];
+      return {
+        type: 'box',
+        y: runs.map(r => r[yAxis] || 0),
+        name: name,
+        boxmean: true,
+        marker: { color: colors[i % colors.length] },
+        line: { color: colors[i % colors.length] },
+        hoverinfo: 'y+name'
+      };
+    });
+
+    const layout = {
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { color: '#e2e4ed', family: 'monospace' },
+      margin: { l: 60, r: 20, t: 30, b: 80 },
+      yaxis: {
+        title: yAxis === 'avg_ts' ? 'Tokens/sec' :
+               yAxis === 'avg_ns' ? 'Ns/token' : 'Stddev (tokens/sec)',
+        gridcolor: '#2e3348',
+        zerolinecolor: '#2e3348'
+      },
+      xaxis: {
+        tickangle: -45,
+        gridcolor: '#2e3348'
+      },
+      boxmode: 'group',
+      legend: {
+        bgcolor: 'rgba(0,0,0,0)',
+        bordercolor: '#2e3348',
+        font: { size: 11 }
+      },
+      hoverlabel: {
+        bgcolor: '#1a1d27',
+        bordercolor: '#2e3348',
+        font: { color: '#e2e4ed', size: 12 }
+      }
+    };
+
+    container.innerHTML = '<div class="plotly-chart" id="plotDiv"></div>';
+    Plotly.newPlot('plotDiv', traces, layout, {
+      responsive: true,
+      displayModeBar: false
+    });
+  }
+
+  // ---- Table ----
+
+  function updateTable() {
+    // Rebuild table header based on visible columns
+    const thead = $('dataTable').querySelector('thead tr');
+    thead.innerHTML = '';
+    for (const col of COLUMNS) {
+      if (!columnVisibility[col.id]) continue;
+      const th = document.createElement('th');
+      th.dataset.sort = col.id;
+      th.textContent = col.label;
+      if (sortColumn === col.id) {
+        th.textContent += sortAsc ? ' ↑' : ' ↓';
+      }
+      th.addEventListener('click', () => {
+        sortColumn = col.id;
+        sortAsc = !sortAsc;
+        updateTable();
+      });
+      thead.appendChild(th);
+    }
+
+    const tbody = $('dataTableBody');
+    tbody.innerHTML = '';
+
+    // Apply mode filter for table too
+    const mode = $('chartMode').value;
+    const tableRuns = filteredRuns.filter(run => {
+      if (mode === 'prompt') return (run.n_prompt || 0) > 0 && (run.n_gen || 0) === 0;
+      if (mode === 'gen') return (run.n_prompt || 0) === 0 && (run.n_gen || 0) > 0;
+      return true;
+    });
+
+    // Sort
+    const sorted = [...tableRuns].sort((a, b) => {
+      let va, vb;
+      const col = COLUMNS.find(c => c.id === sortColumn);
+      if (col) {
+        va = col.key === 'model' ? `${parseModelInfo(a).family} ${parseModelInfo(a).size}` : (a[col.key] ?? '');
+        vb = col.key === 'model' ? `${parseModelInfo(b).family} ${parseModelInfo(b).size}` : (b[col.key] ?? '');
+      } else {
+        va = a[sortColumn] ?? '';
+        vb = b[sortColumn] ?? '';
+      }
+      if (typeof va === 'string') {
+        return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+      }
+      return sortAsc ? va - vb : vb - va;
+    });
+
+    for (const run of sorted) {
+      const tr = document.createElement('tr');
+      for (const col of COLUMNS) {
+        if (!columnVisibility[col.id]) continue;
+        const td = document.createElement('td');
+        switch (col.id) {
+          case 'model':
+            const info = parseModelInfo(run);
+            td.textContent = `${info.family} ${info.size}`;
+            td.title = run.model_type || '';
+            break;
+          case 'hf_owner':
+            td.textContent = run._hfOwner || '';
+            break;
+          case 'hf_repo':
+            td.textContent = run._hfRepo || '';
+            if (run._hfOwner && run._hfRepo) {
+              td.title = `${run._hfOwner}/${run._hfRepo}`;
+              td.style.cursor = 'pointer';
+              td.addEventListener('click', () => {
+                window.open(`https://huggingface.co/${run._hfOwner}/${run._hfRepo}`, '_blank');
+              });
+            }
+            break;
+          case 'hf_revision':
+            td.textContent = run._hfRevision || '';
+            break;
+          default:
+            td.textContent = run[col.key] ?? '';
+        }
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+
+    $('tableCount').textContent = tableRuns.length;
+  }
+
+  // ---- Status ----
+
+  function setStatus(type, text) {
+    const dot = $('statusDot');
+    const txt = $('statusText');
+    dot.className = 'status-dot ' + type;
+    txt.textContent = text;
+  }
+
+  // ---- Export ----
+
+  function exportPNG() {
+    const plotDiv = document.querySelector('#chartContainer .plotly-chart');
+    if (!plotDiv || typeof Plotly === 'undefined') return;
+    Plotly.toImage(plotDiv, 'png', { width: 1200, height: 600, filename: 'benchmark' });
+  }
+
+  function exportSVG() {
+    const plotDiv = document.querySelector('#chartContainer .plotly-chart');
+    if (!plotDiv || typeof Plotly === 'undefined') return;
+    Plotly.toImage(plotDiv, 'svg', { width: 1200, height: 600, filename: 'benchmark' });
+  }
+
+  function exportTSV() {
+    const mode = $('chartMode').value;
+    const exportRuns = filteredRuns.filter(run => {
+      if (mode === 'prompt') return (run.n_prompt || 0) > 0 && (run.n_gen || 0) === 0;
+      if (mode === 'gen') return (run.n_prompt || 0) === 0 && (run.n_gen || 0) > 0;
+      return true;
+    });
+
+    const headers = ['Date', 'Model', 'Backend', 'Prompt', 'Gen', 'tgs', 'Stddev', 'Threads', 'GPU Layers', 'Source'];
+    const rows = [headers.join('\t')];
+
+    for (const run of exportRuns) {
+      const info = parseModelInfo(run);
+      rows.push([
+        run._sourceDate || '',
+        `${info.family} ${info.size}`,
+        run.backends,
+        run.n_prompt || 0,
+        run.n_gen || 0,
+        (run.avg_ts || 0).toFixed(2),
+        (run.stddev_ts || 0).toFixed(3),
+        run.n_threads || '',
+        run.n_gpu_layers ?? '',
+        run._sourceFile || ''
+      ].join('\t'));
+    }
+
+    downloadFile('benchmark.tsv', rows.join('\n'), 'text/tab-separated-values');
+  }
+
+  function generateMarkdown() {
+    const mode = $('chartMode').value;
+    const chartRuns = filteredRuns.filter(run => {
+      if (mode === 'prompt') return (run.n_prompt || 0) > 0 && (run.n_gen || 0) === 0;
+      if (mode === 'gen') return (run.n_prompt || 0) === 0 && (run.n_gen || 0) > 0;
+      return true;
+    });
+
+    const chartType = $('chartType').value;
+    const xAxis = $('chartXAxis').value;
+    const yAxis = $('chartYAxis').value;
+
+    let md = `# Benchmark Comparison\n\n`;
+    md += `> Auto-generated on ${new Date().toISOString().split('T')[0]}\n`;
+    md += `> Mode: ${mode === 'prompt' ? 'Prompt Processing' : mode === 'gen' ? 'Token Generation' : 'All'}\n`;
+    md += `> Filtered runs: ${chartRuns.length}\n\n`;
+
+    // Summary table
+    const groups = {};
+    for (const run of chartRuns) {
+      const key = getGroupKey(run);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(run);
+    }
+
+    md += `## Summary\n\n`;
+    md += `| Config | Runs | Avg TGS | Min TGS | Max TGS |\n`;
+    md += `|--------|------|---------|---------|--------|\n`;
+
+    for (const [name, runs] of Object.entries(groups)) {
+      const tgsValues = runs.map(r => r.avg_ts || 0);
+      const avg = tgsValues.reduce((a, b) => a + b, 0) / tgsValues.length;
+      md += `| ${name} | ${runs.length} | ${avg.toFixed(1)} | ${Math.min(...tgsValues).toFixed(1)} | ${Math.max(...tgsValues).toFixed(1)} |\n`;
+    }
+
+    md += `\n## Charts\n\n`;
+    md += `<!-- Export charts using the Export SVG button and paste them here -->\n`;
+
+    // Also include raw data as TSV
+    md += `\n## Raw Data\n\n`;
+    md += '```tsv\n';
+    const tsvHeaders = ['Date', 'Model', 'Backend', 'Prompt', 'Gen', 'tgs', 'Stddev', 'Threads', 'Source'];
+    md += tsvHeaders.join('\t') + '\n';
+    for (const run of chartRuns) {
+      const info = parseModelInfo(run);
+      md += [
+        run._sourceDate || '',
+        `${info.family} ${info.size}`,
+        run.backends,
+        run.n_prompt || 0,
+        run.n_gen || 0,
+        (run.avg_ts || 0).toFixed(2),
+        (run.stddev_ts || 0).toFixed(3),
+        run.n_threads || '',
+        run._sourceFile || ''
+      ].join('\t') + '\n';
+    }
+    md += '```\n';
+
+    showModal('Generate benchmarks.md', md);
+  }
+
+  function downloadFile(filename, content, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ---- Modal ----
+
+  function showModal(title, content) {
+    $('modalTitle').textContent = title;
+    $('modalContent').textContent = content;
+    $('modalOverlay').classList.remove('hidden');
+  }
+
+  function hideModal() {
+    $('modalOverlay').classList.add('hidden');
+  }
+
+  // ---- Column toggle ----
+
+  function buildColumnToggles() {
+    const container = $('columnToggles');
+    container.innerHTML = '';
+    for (const col of COLUMNS) {
+      const label = document.createElement('label');
+      label.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = columnVisibility[col.id];
+      cb.dataset.col = col.id;
+      cb.addEventListener('change', () => {
+        columnVisibility[col.id] = cb.checked;
+        updateTable();
+        saveSettings();
+      });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(col.label));
+      container.appendChild(label);
+    }
+  }
+
+  function showColumnModal() {
+    buildColumnToggles();
+    $('columnModalOverlay').classList.remove('hidden');
+  }
+
+  function hideColumnModal() {
+    $('columnModalOverlay').classList.add('hidden');
+  }
+
+  // ---- Event bindings ----
+
+  function bindEvents() {
+    // Data loading
+    $('btnSelectFolder').addEventListener('click', selectFolder);
+    $('btnLoadFromServer').addEventListener('click', loadFromServer);
+
+    // Filters
+    $('filterHfOwner').addEventListener('change', () => {
+      $('filterHfRepo').value = '';
+      $('filterHfRevision').value = '';
+      populateCascadingFilters();
+      applyFilters(); saveSettings();
+    });
+    $('filterHfRepo').addEventListener('change', () => {
+      $('filterHfRevision').value = '';
+      populateCascadingFilters();
+      applyFilters(); saveSettings();
+    });
+    ['filterHfRevision', 'filterBackend', 'filterModel', 'filterQuant', 'filterVersion'].forEach(id => {
+      $(id).addEventListener('change', () => { applyFilters(); saveSettings(); });
+    });
+    // Date inputs: show formatted display, sync on change
+    $('filterDateFrom').addEventListener('change', () => {
+      setFilterDate('filterDateFrom', $('filterDateFrom').value);
+      applyFilters(); saveSettings();
+    });
+    $('filterDateTo').addEventListener('change', () => {
+      setFilterDate('filterDateTo', $('filterDateTo').value);
+      applyFilters(); saveSettings();
+    });
+    // Click display to open date picker
+    $('filterDateFromDisplay').addEventListener('click', () => {
+      const inp = $('filterDateFrom');
+      if (inp.showPicker) inp.showPicker(); else inp.click();
+    });
+    $('filterDateToDisplay').addEventListener('click', () => {
+      const inp = $('filterDateTo');
+      if (inp.showPicker) inp.showPicker(); else inp.click();
+    });
+    $('btnClearFilters').addEventListener('click', () => {
+      $('filterBackend').value = '';
+      $('filterModel').value = '';
+      $('filterQuant').value = '';
+      $('filterVersion').value = '';
+      $('filterDateFrom').value = '';
+      $('filterDateTo').value = '';
+      applyFilters(); saveSettings();
+    });
+
+    // Chart controls
+    $('chartMode').addEventListener('change', () => {
+      const mode = $('chartMode').value;
+      const xSel = $('chartXAxis');
+      const resetBtn = $('btnResetXAxis');
+
+      // Hide/show x-axis options based on mode
+      const promptOpt = xSel.querySelector('option[value="n_prompt"]');
+      const genOpt = xSel.querySelector('option[value="n_gen"]');
+
+      promptOpt.style.display = mode === 'gen' ? 'none' : '';
+      genOpt.style.display = mode === 'prompt' ? 'none' : '';
+
+      // Adjust selected value if current selection is hidden
+      if (mode === 'prompt' && xSel.value === 'n_gen') {
+        xSel.value = 'n_prompt';
+      } else if (mode === 'gen' && xSel.value === 'n_prompt') {
+        xSel.value = 'n_gen';
+      }
+
+      // Show reset button when mode restricts options
+      resetBtn.style.display = mode === 'all' ? 'none' : 'inline-flex';
+
+      renderChart(); updateTable(); saveSettings();
+    });
+    ['chartType', 'chartXAxis', 'chartYAxis'].forEach(id => {
+      $(id).addEventListener('change', () => { renderChart(); saveSettings(); });
+    });
+    $('btnResetXAxis').addEventListener('click', () => {
+      $('chartXAxis').value = 'n_prompt';
+      renderChart(); saveSettings();
+    });
+
+    // Data path
+    $('dataPath').addEventListener('change', saveSettings);
+
+    // Export
+    $('btnExportPNG').addEventListener('click', exportPNG);
+    $('btnExportSVG').addEventListener('click', exportSVG);
+    $('btnExportTSV').addEventListener('click', exportTSV);
+    $('btnGenMd').addEventListener('click', generateMarkdown);
+
+    // Panel toggle
+    $('filterPanelHeader').addEventListener('click', () => {
+      $('filterPanelBody').classList.toggle('collapsed');
+      $('filterToggle').textContent = $('filterPanelBody').classList.contains('collapsed') ? '▶' : '▼';
+    });
+
+    $('tableHeader').addEventListener('click', () => {
+      $('tableBody').classList.toggle('collapsed');
+      $('tableToggle').textContent = $('tableBody').classList.contains('collapsed') ? '▶' : '▼';
+    });
+
+    // Table sorting
+    $('dataTable').querySelectorAll('th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.sort;
+        if (sortColumn === col) {
+          sortAsc = !sortAsc;
+        } else {
+          sortColumn = col;
+          sortAsc = col === 'test_time' || col === '_sourceDate';
+        }
+        // Update arrow indicators
+        $('dataTable').querySelectorAll('th').forEach(h => {
+          h.textContent = h.textContent.replace(/ [↑↓]$/, '');
+        });
+        th.textContent = th.textContent.trim() + (sortAsc ? ' ↑' : ' ↓');
+        updateTable();
+      });
+    });
+
+    // Auto-refresh
+    $('autoRefreshInterval').addEventListener('change', () => {
+      const ms = parseInt($('autoRefreshInterval').value);
+      if (refreshTimer) clearInterval(refreshTimer);
+      if (ms > 0) {
+        refreshTimer = setInterval(refreshData, ms);
+      }
+    });
+
+    // Share
+    $('btnShare').addEventListener('click', shareSettings);
+
+    // Columns
+    $('btnColumns').addEventListener('click', showColumnModal);
+    $('btnCloseCols').addEventListener('click', hideColumnModal);
+    $('btnSelectAllCols').addEventListener('click', () => {
+      COLUMNS.forEach(col => { columnVisibility[col.id] = true; });
+      buildColumnToggles();
+      updateTable();
+      saveSettings();
+    });
+    $('btnDeselectAllCols').addEventListener('click', () => {
+      COLUMNS.forEach(col => { columnVisibility[col.id] = false; });
+      buildColumnToggles();
+      updateTable();
+      saveSettings();
+    });
+    $('columnModalOverlay').addEventListener('click', (e) => {
+      if (e.target === $('columnModalOverlay')) hideColumnModal();
+    });
+
+    // Reset
+    $('btnResetSettings').addEventListener('click', clearSettings);
+
+    // Modal
+    $('btnCloseModal').addEventListener('click', hideModal);
+    $('btnCopyModal').addEventListener('click', () => {
+      copyText($('modalContent').textContent, $('btnCopyModal'));
+    });
+    $('modalOverlay').addEventListener('click', (e) => {
+      if (e.target === $('modalOverlay')) hideModal();
+    });
+
+    // Keyboard
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        hideColumnModal();
+        hideModal();
+      }
+    });
+  }
+
+  // ---- Init ----
+
+  function init() {
+    bindEvents();
+
+    // Load settings from URL/hash/localStorage
+    const settings = loadSettings();
+    if (settings) {
+      applySettings(settings);
+    }
+
+    // Default data path hints based on environment (only if no settings loaded)
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      if (!$('dataPath').value) {
+        $('dataPath').value = '/data/';
+      }
+    }
+
+    // Auto-load from server if data path is set
+    const dataPath = $('dataPath').value.replace(/\/$/, '');
+    if (dataPath) {
+      loadFromServer();
+    } else {
+      setStatus('ready', 'Select a data folder or load from server to begin');
+    }
+  }
+
+  // Start when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
 </body>
 </html>
-
