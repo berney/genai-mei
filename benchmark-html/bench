@@ -1,0 +1,2 @@
+#!/bin/sh
+xh --ignore-stdin localhost:8090/v1/chat/completions content-type:application/json model=qwen3-4b-q6 max_tokens:=50 messages:='[{"role": "user", "content": "Hello"}]'
