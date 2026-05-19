@@ -127,6 +127,82 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   color: var(--text-dim);
   font-weight: 600;
 }
+/* ---- TGS Range Slider ---- */
+.tgs-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+.tgs-slider {
+  display: none;
+  padding: 4px 0;
+}
+.tgs-slider.visible {
+  display: block;
+}
+.tgs-slider-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.tgs-slider-value {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-family: monospace;
+  text-align: center;
+  margin-top: 1px;
+}
+.range-slider {
+  position: relative;
+  height: 24px;
+  cursor: pointer;
+  user-select: none;
+}
+.range-slider-track {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+}
+.range-slider-fill {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.range-slider-handle {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  margin-top: -7px;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  cursor: grab;
+  transition: box-shadow 0.15s;
+  z-index: 2;
+}
+.range-slider-handle:hover {
+  box-shadow: 0 0 0 3px rgba(108,140,255,0.3);
+}
+.range-slider-handle.dragging {
+  cursor: grabbing;
+  box-shadow: 0 0 0 4px rgba(108,140,255,0.4);
+}
+
 .filter-group select, .filter-group input {
   background: var(--surface2);
   color: var(--text);
@@ -351,6 +427,26 @@ tr:hover td { background: var(--surface2); }
       <div style="margin-top:10px;display:flex;gap:8px;">
         <button id="btnClearFilters">Clear Filters</button>
       </div>
+      <div id="tgsSliderPP" class="tgs-slider">
+        <div class="tgs-slider-label">Prompt Processing tgs</div>
+        <div class="range-slider" id="rangeSliderPP">
+          <div class="range-slider-track"></div>
+          <div class="range-slider-fill"></div>
+          <div class="range-slider-handle" data-handle="min"></div>
+          <div class="range-slider-handle" data-handle="max"></div>
+        </div>
+        <div class="tgs-slider-value"></div>
+      </div>
+      <div id="tgsSliderTG" class="tgs-slider">
+        <div class="tgs-slider-label">Token Generation tgs</div>
+        <div class="range-slider" id="rangeSliderTG">
+          <div class="range-slider-track"></div>
+          <div class="range-slider-fill"></div>
+          <div class="range-slider-handle" data-handle="min"></div>
+          <div class="range-slider-handle" data-handle="max"></div>
+        </div>
+        <div class="tgs-slider-value"></div>
+      </div>
     </div>
   </div>
 
@@ -487,6 +583,13 @@ if (typeof Plotly === 'undefined') {
   let dataMode = 'none';   // 'http' | 'picker' | 'none'
   let directoryHandle = null;
   let refreshTimer = null;
+
+  // TGS range slider state
+  let tgsPPRange = [0, Infinity];  // [min, max] for prompt processing
+  let tgsTGRange = [0, Infinity];  // [min, max] for token generation
+  let tgsPPMax = Infinity;
+  let tgsTGMax = Infinity;
+  let draggingHandle = null;
   let sortColumn = 'test_time';
   let sortAsc = false;
 
@@ -995,9 +1098,7 @@ if (typeof Plotly === 'undefined') {
       version: except === 'filterVersion' ? exceptValue || '' : $('filterVersion').value,
     };
 
-    console.log('[GETFILTERS] except:', except, 'vals:', vals);
-
-    return allRuns.filter(run => {
+     return allRuns.filter(run => {
       if (vals.hfOwner && run._hfOwner !== vals.hfOwner) return false;
       if (vals.hfRepo && run._hfRepo !== vals.hfRepo) return false;
       if (vals.hfRevision && run._hfRevision !== vals.hfRevision) return false;
@@ -1011,6 +1112,12 @@ if (typeof Plotly === 'undefined') {
         if (info.quant !== vals.quant) return false;
       }
       if (vals.version && parseVersion(run) !== vals.version) return false;
+      // TGS range filter (for cross-filtering candidates)
+      const tgs = run.avg_ts || 0;
+      const isPP = (run.n_prompt || 0) > 0 && (run.n_gen || 0) === 0;
+      const isTG = (run.n_prompt || 0) === 0 && (run.n_gen || 0) > 0;
+      if (isPP && (tgs < tgsPPRange[0] || tgs > tgsPPRange[1])) return false;
+      if (isTG && (tgs < tgsTGRange[0] || tgs > tgsTGRange[1])) return false;
       return true;
     });
   }
@@ -1054,6 +1161,7 @@ if (typeof Plotly === 'undefined') {
         sel.value = '';
       }
     });
+    updateTgsSliders();
   }
 
   function populateFilters() {
@@ -1085,6 +1193,7 @@ if (typeof Plotly === 'undefined') {
     populateSelect('filterVersion', versions);
 
     populateDateRange();
+    updateTgsSliders();
   }
 
   function populateDateRange() {
@@ -1129,6 +1238,154 @@ if (typeof Plotly === 'undefined') {
     sel.value = current;
   }
 
+  // ---- TGS Range Slider ----
+
+  function buildRangeSlider(containerId, minVal, maxVal) {
+    const container = $(containerId);
+    if (!container) return;
+    if (container._built) return; // already built
+    container._built = true;
+
+    const fill = container.querySelector('.range-slider-fill');
+    const handles = container.querySelectorAll('.range-slider-handle');
+    const valueDisplay = container.closest('.tgs-slider').querySelector('.tgs-slider-value');
+
+    const min = Math.max(minVal, 0);
+
+    function posToPct(pos) {
+      return Math.max(0, Math.min(1, pos / container.offsetWidth));
+    }
+
+    function updateVisuals(pcts) {
+      const [lp, rp] = pcts;
+      fill.style.left = (lp * 100) + '%';
+      fill.style.width = ((rp - lp) * 100) + '%';
+      handles[0].style.left = (lp * 100) + '%';
+      handles[1].style.left = (rp * 100) + '%';
+
+      const range = maxVal - min || 1;
+      const lo = min + lp * range;
+      const hi = min + rp * range;
+      valueDisplay.textContent = (lo < 1 ? lo.toFixed(1) : Math.round(lo)) + ' – ' + (hi >= maxVal ? '∞' : (hi < 1 ? hi.toFixed(1) : Math.round(hi))) + ' tgs';
+    }
+
+    // Drag logic
+    let dragging = null;
+
+    function onDown(e) {
+      if (e.target.classList.contains('range-slider-handle')) {
+        dragging = e.target.dataset.handle;
+        e.target.classList.add('dragging');
+        e.preventDefault();
+      }
+    }
+
+    function onMove(e) {
+      if (!dragging) return;
+      const rect = container.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      let pct = posToPct(clientX - rect.left);
+
+      if (dragging === 'min') {
+        container._pct[0] = Math.min(pct, container._pct[1] - 0.005);
+      } else {
+        container._pct[1] = Math.max(pct, container._pct[0] + 0.005);
+      }
+      updateVisuals(container._pct);
+    }
+
+    function onUp() {
+      if (dragging) {
+        const handle = container.querySelector('.range-slider-handle[data-handle="' + dragging + '"]');
+        if (handle) handle.classList.remove('dragging');
+        dragging = null;
+        onSliderChange();
+      }
+    }
+
+    container.addEventListener('mousedown', onDown);
+    container.addEventListener('touchstart', onDown, { passive: false });
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
+
+    container._pct = [0, 1];
+    updateVisuals([0, 1]);
+  }
+
+  function onSliderChange() {
+    const pp = $('rangeSliderPP');
+    const tg = $('rangeSliderTG');
+    if (pp && pp._pct) {
+      tgsPPRange = [pp._pct[0] * tgsPPMax, pp._pct[1] * tgsPPMax];
+    }
+    if (tg && tg._pct) {
+      tgsTGRange = [tg._pct[0] * tgsTGMax, tg._pct[1] * tgsTGMax];
+    }
+    applyFilters();
+    saveSettings();
+  }
+
+  function updateTgsSliders() {
+    const ppRuns = filteredRuns.filter(r => (r.n_prompt || 0) > 0 && (r.n_gen || 0) === 0);
+    const tgRuns = filteredRuns.filter(r => (r.n_prompt || 0) === 0 && (r.n_gen || 0) > 0);
+
+    const ppTs = ppRuns.map(r => r.avg_ts || 0);
+    const tgTs = tgRuns.map(r => r.avg_ts || 0);
+
+    const prevPPMax = tgsPPMax;
+    const prevTGMax = tgsTGMax;
+
+    tgsPPMax = ppTs.length > 0 ? Math.max(...ppTs) : 100;
+    tgsTGMax = tgTs.length > 0 ? Math.max(...tgTs) : 100;
+
+    // Clamp ranges to new max
+    if (tgsPPRange[0] > tgsPPMax) tgsPPRange[0] = tgsPPMax;
+    if (tgsPPRange[1] > tgsPPMax) tgsPPRange[1] = tgsPPMax;
+    if (tgsTGRange[0] > tgsTGMax) tgsTGRange[0] = tgsTGMax;
+    if (tgsTGRange[1] > tgsTGMax) tgsTGRange[1] = tgsTGMax;
+
+    // Show/hide sliders
+    $('tgsSliderPP').classList.toggle('visible', ppRuns.length > 0);
+    $('tgsSliderTG').classList.toggle('visible', tgRuns.length > 0);
+
+    // Build sliders once, update positions thereafter
+    if (ppRuns.length > 0) {
+      if (!$('rangeSliderPP')._built) {
+        buildRangeSlider('rangeSliderPP', 0);
+      }
+      const range = tgsPPMax || 1;
+      const pcts = [tgsPPRange[0] / range, tgsPPRange[1] / range];
+      $('rangeSliderPP')._pct = pcts;
+      const fill = $('rangeSliderPP').querySelector('.range-slider-fill');
+      const handles = $('rangeSliderPP').querySelectorAll('.range-slider-handle');
+      fill.style.left = (pcts[0] * 100) + '%';
+      fill.style.width = ((pcts[1] - pcts[0]) * 100) + '%';
+      handles[0].style.left = (pcts[0] * 100) + '%';
+      handles[1].style.left = (pcts[1] * 100) + '%';
+      const valueDisplay = $('tgsSliderPP').querySelector('.tgs-slider-value');
+      valueDisplay.textContent = (pcts[0] * tgsPPMax < 1 ? (pcts[0] * tgsPPMax).toFixed(1) : Math.round(pcts[0] * tgsPPMax)) + ' – ' + (pcts[1] * tgsPPMax < 1 ? (pcts[1] * tgsPPMax).toFixed(1) : Math.round(pcts[1] * tgsPPMax)) + ' tgs';
+    }
+
+    if (tgRuns.length > 0) {
+      if (!$('rangeSliderTG')._built) {
+        buildRangeSlider('rangeSliderTG', 0);
+      }
+      const range = tgsTGMax || 1;
+      const pcts = [tgsTGRange[0] / range, tgsTGRange[1] / range];
+      $('rangeSliderTG')._pct = pcts;
+      const fill = $('rangeSliderTG').querySelector('.range-slider-fill');
+      const handles = $('rangeSliderTG').querySelectorAll('.range-slider-handle');
+      fill.style.left = (pcts[0] * 100) + '%';
+      fill.style.width = ((pcts[1] - pcts[0]) * 100) + '%';
+      handles[0].style.left = (pcts[0] * 100) + '%';
+      handles[1].style.left = (pcts[1] * 100) + '%';
+      const valueDisplay = $('tgsSliderTG').querySelector('.tgs-slider-value');
+      valueDisplay.textContent = (pcts[0] * tgsTGMax < 1 ? (pcts[0] * tgsTGMax).toFixed(1) : Math.round(pcts[0] * tgsTGMax)) + ' – ' + (pcts[1] * tgsTGMax < 1 ? (pcts[1] * tgsTGMax).toFixed(1) : Math.round(pcts[1] * tgsTGMax)) + ' tgs';
+    }
+  }
+
   function applyFilters() {
     const hfOwner = $('filterHfOwner').value;
     const hfRepo = $('filterHfRepo').value;
@@ -1156,11 +1413,18 @@ if (typeof Plotly === 'undefined') {
       if (version && parseVersion(run) !== version) return false;
       if (dateFrom && run._sourceDate < dateFrom) return false;
       if (dateTo && run._sourceDate > dateTo) return false;
+      // TGS range filter
+      const tgs = run.avg_ts || 0;
+      const isPP = (run.n_prompt || 0) > 0 && (run.n_gen || 0) === 0;
+      const isTG = (run.n_prompt || 0) === 0 && (run.n_gen || 0) > 0;
+      if (isPP && (tgs < tgsPPRange[0] || tgs > tgsPPRange[1])) return false;
+      if (isTG && (tgs < tgsTGRange[0] || tgs > tgsTGRange[1])) return false;
       return true;
     });
 
     updateTable();
     renderChart();
+    updateTgsSliders();
   }
 
   // ---- Chart rendering ----
