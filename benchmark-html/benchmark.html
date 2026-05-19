@@ -337,6 +337,42 @@ tr:hover td { background: var(--surface2); }
 }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
+/* File Viewer */
+.file-viewer-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 12px;
+}
+.file-viewer-tab {
+  background: var(--surface2);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.file-viewer-tab:first-child {
+  border-radius: var(--radius) 0 0 0;
+}
+.file-viewer-tab.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+.file-viewer-panels {
+  position: relative;
+}
+.file-viewer-panel {
+  max-height: 70vh;
+  display: block;
+  white-space: pre;
+}
+.file-viewer-panel.hidden {
+  display: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .filter-group { min-width: 100%; }
@@ -426,6 +462,7 @@ tr:hover td { background: var(--surface2); }
       </div>
       <div style="margin-top:10px;display:flex;gap:8px;">
         <button id="btnClearFilters">Clear Filters</button>
+        <button id="btnClearExclusions">Clear Exclusions</button>
       </div>
       <div id="tgsSliderPP" class="tgs-slider">
         <div class="tgs-slider-label">Prompt Processing tgs</div>
@@ -517,6 +554,7 @@ tr:hover td { background: var(--surface2); }
       <table id="dataTable">
         <thead>
           <tr>
+            <th style="width:30px;text-align:center;" title="Exclude from chart">✕</th>
             <th data-sort="test_time">Date ↓</th>
             <th data-sort="model_type">Model</th>
             <th data-sort="backends">Backend</th>
@@ -559,6 +597,25 @@ tr:hover td { background: var(--surface2); }
   </div>
 </div>
 
+<!-- File Viewer Modal -->
+<div class="modal-overlay hidden" id="fileViewerOverlay">
+  <div class="modal" style="max-width:1100px;">
+    <h2 id="fileViewerTitle">File Viewer</h2>
+    <div class="file-viewer-tabs">
+      <button class="file-viewer-tab active" data-tab="json">JSON</button>
+      <button class="file-viewer-tab" data-tab="log">Log</button>
+    </div>
+    <div class="file-viewer-panels">
+      <pre id="fileViewerJson" class="file-viewer-panel"></pre>
+      <pre id="fileViewerLog" class="file-viewer-panel hidden"></pre>
+    </div>
+    <div class="modal-actions">
+      <button id="btnCopyFileViewer">Copy</button>
+      <button id="btnCloseFileViewer">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Plotly.js CDN with fallback -->
 <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@3.2.0/plotly.min.js"></script>
 <script>
@@ -568,6 +625,11 @@ if (typeof Plotly === 'undefined') {
   document.head.appendChild(_s);
 }
 </script>
+
+<!-- Highlight.js for syntax coloring -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
 
 <script>
 // ============================================================
@@ -593,14 +655,20 @@ if (typeof Plotly === 'undefined') {
   let sortColumn = 'test_time';
   let sortAsc = false;
 
+  // ---- Excluded runs ----
+  let excludedRuns = new Set();  // Set of unique keys for runs excluded from chart
+
   // ---- Column definitions ----
   const COLUMNS = [
+    { id: '_exclude',     label: 'Exclude',      key: null,                defaultVisible: true },
     { id: 'date',         label: 'Date',         key: '_sourceDate',        defaultVisible: true },
     { id: 'model',        label: 'Model',        key: 'model_type',         defaultVisible: true },
     { id: 'hf_owner',     label: 'HF Owner',     key: '_hfOwner',           defaultVisible: false },
     { id: 'hf_repo',      label: 'HF Repo',      key: '_hfRepo',            defaultVisible: false },
     { id: 'hf_revision',  label: 'HF Revision',  key: '_hfRevision',        defaultVisible: false },
     { id: 'backend',      label: 'Backend',      key: 'backends',           defaultVisible: true },
+    { id: 'version',      label: 'Version',      key: '_version',           defaultVisible: false },
+    { id: 'source_file',  label: 'Source File',  key: '_sourceFile',        defaultVisible: false },
     { id: 'n_prompt',     label: 'Prompt',       key: 'n_prompt',           defaultVisible: true },
     { id: 'n_gen',        label: 'Gen',          key: 'n_gen',              defaultVisible: true },
     { id: 'avg_ts',       label: 'tgs',          key: 'avg_ts',             defaultVisible: true },
@@ -674,6 +742,14 @@ if (typeof Plotly === 'undefined') {
         }
       }
     }
+    // Load exclusions from localStorage
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY + '-exclusions');
+      if (stored) {
+        const arr = JSON.parse(stored);
+        if (Array.isArray(arr)) excludedRuns = new Set(arr);
+      }
+    } catch (e) { /* ignore */ }
   }
 
   function buildHash() {
@@ -698,6 +774,8 @@ if (typeof Plotly === 'undefined') {
     const hash = buildHash();
     try {
       localStorage.setItem(STORAGE_KEY, hash);
+      // Persist exclusions separately (can be large, not URL-shareable)
+      localStorage.setItem(STORAGE_KEY + '-exclusions', JSON.stringify([...excludedRuns]));
     } catch (e) {
       // ignore
     }
@@ -860,7 +938,14 @@ if (typeof Plotly === 'undefined') {
             const dateStr = dateMatch ? dateMatch[1] : '';
             for (const run of data) {
               run._sourceDate = dateStr;
-              run._sourceFile = url;
+              run._sourceFile = (() => {
+              try {
+                const u = new URL(url);
+                return u.pathname.replace(dataPath + '/', '').replace(/\/$/, '');
+              } catch {
+                return url.replace(dataPath + '/', '').replace(/\/$/, '');
+              }
+            })();
               enrichRun(run);
               results.push(run);
             }
@@ -1012,6 +1097,7 @@ if (typeof Plotly === 'undefined') {
     run._hfRepo = fn.repo;
     run._hfModelName = fn.model_name;
     run._hfRevision = fn.revision;
+    run._version = parseVersion(run);
     return run;
   }
 
@@ -1436,6 +1522,11 @@ if (typeof Plotly === 'undefined') {
     return `${info.family} ${info.size} ${info.quant} (${run.backends} ${version})`.trim();
   }
 
+  function getRunKey(run) {
+    // Unique key for each run (for exclusion tracking)
+    return run._sourceFile + '|' + (run.n_prompt || 0) + '|' + (run.n_gen || 0);
+  }
+
   function renderChart() {
     const container = $('chartContainer');
     const placeholder = $('chartPlaceholder');
@@ -1445,9 +1536,10 @@ if (typeof Plotly === 'undefined') {
       return;
     }
 
-    // Apply mode filter
+    // Apply mode filter and exclusion filter
     const mode = $('chartMode').value;
     const chartRuns = filteredRuns.filter(run => {
+      if (excludedRuns.has(getRunKey(run))) return false;
       if (mode === 'prompt') return (run.n_prompt || 0) > 0 && (run.n_gen || 0) === 0;
       if (mode === 'gen') return (run.n_prompt || 0) === 0 && (run.n_gen || 0) > 0;
       return true; // 'all'
@@ -1516,16 +1608,19 @@ if (typeof Plotly === 'undefined') {
       const xValues = [...new Set(runs.map(r => r[xAxis] || 0))].sort((a, b) => a - b);
 
       if (chartType === 'bar') {
-        // Grouped bar: one trace per x-value within this group
+        // Grouped bar: aggregate multiple runs at same x-value
         const xLabels = xValues.map(v => v === 0 ? 'gen' : `${v}`);
+        const barData = xValues.map(xv => {
+          const match = runs.filter(r => (r[xAxis] || 0) === xv);
+          if (match.length === 0) return 0;
+          const vals = match.map(r => r[yAxis] || 0);
+          return vals.reduce((a, b) => a + b, 0) / vals.length;
+        });
         return {
           type: 'bar',
           name: name,
           x: xLabels,
-          y: xValues.map(xv => {
-            const match = runs.filter(r => (r[xAxis] || 0) === xv);
-            return match.length > 0 ? match[0][yAxis] : 0;
-          }),
+          y: barData,
           text: runs.map(r =>
             `${r.model_type}<br>x=${r[xAxis]} y=${(r[yAxis] || 0).toFixed(1)}<br>prompt=${r.n_prompt} gen=${r.n_gen}`
           ),
@@ -1534,21 +1629,38 @@ if (typeof Plotly === 'undefined') {
       }
 
       // Line chart
+      const lineData = xValues.map(xv => {
+        const match = runs.filter(r => (r[xAxis] || 0) === xv);
+        if (match.length === 0) return { x: xv, y: null, yerr: null, count: 0 };
+        const vals = match.map(r => r[yAxis] || 0);
+        const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+        const stddev = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length);
+        return { x: xv, y: mean, yerr: stddev, count: vals.length, samples: vals };
+      });
       return {
         type: 'scatter',
         mode: 'lines+markers',
         name: name,
-        x: xValues,
-        y: xValues.map(xv => {
-          const match = runs.filter(r => (r[xAxis] || 0) === xv);
-          return match.length > 0 ? match[0][yAxis] : null;
+        x: lineData.map(d => d.x),
+        y: lineData.map(d => d.y),
+        error_y: {
+          type: 'data',
+          array: lineData.map(d => d.yerr),
+          visible: true,
+          color: colors[i % colors.length],
+          thickness: 1.5,
+          width: 3,
+          opacity: 0.7
+        },
+        text: lineData.map(d => {
+          if (d.y === null) return `${name}<br>No data at x=${d.x}`;
+          const parts = [`${name}`, `x=${d.x}`, `mean=${d.y.toFixed(1)} ±${d.yerr.toFixed(1)}`];
+          if (d.count > 1) parts.push(`${d.count} samples: ${d.samples.map(v => v.toFixed(1)).join(', ')}`);
+          return parts.join('<br>');
         }),
-        text: runs.map(r =>
-          `${r.model_type}<br>x=${r[xAxis]} y=${(r[yAxis] || 0).toFixed(1)}<br>prompt=${r.n_prompt} gen=${r.n_gen}`
-        ),
         line: { color: colors[i % colors.length], width: 2 },
         marker: { size: 6, color: colors[i % colors.length] },
-        hovertemplate: '%{text}<extra>%{name}</extra>'
+        hovertemplate: '%{text}<extra></extra>'
       };
     });
 
@@ -1817,6 +1929,24 @@ if (typeof Plotly === 'undefined') {
         if (!columnVisibility[col.id]) continue;
         const td = document.createElement('td');
         switch (col.id) {
+          case '_exclude':
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = excludedRuns.has(getRunKey(run));
+            cb.style.cursor = 'pointer';
+            cb.addEventListener('change', () => {
+              if (cb.checked) {
+                excludedRuns.add(getRunKey(run));
+              } else {
+                excludedRuns.delete(getRunKey(run));
+              }
+              renderChart();
+              saveSettings();
+            });
+            td.appendChild(cb);
+            td.style.textAlign = 'center';
+            td.style.padding = '4px 8px';
+            break;
           case 'model':
             const info = parseModelInfo(run);
             td.textContent = `${info.family} ${info.size}`;
@@ -1837,6 +1967,22 @@ if (typeof Plotly === 'undefined') {
             break;
           case 'hf_revision':
             td.textContent = run._hfRevision || '';
+            break;
+          case 'source_file':
+            if (run._sourceFile) {
+              const link = document.createElement('a');
+              const dataPath = $('dataPath').value.replace(/\/$/, '');
+              link.href = dataPath + '/' + run._sourceFile;
+              link.textContent = run._sourceFile;
+              link.style.color = 'var(--accent)';
+              link.style.textDecoration = 'underline';
+              link.style.cursor = 'pointer';
+              link.addEventListener('click', (e) => {
+                e.preventDefault();
+                openFileViewer(run._sourceFile);
+              });
+              td.appendChild(link);
+            }
             break;
           default:
             td.textContent = run[col.key] ?? '';
@@ -1986,6 +2132,83 @@ if (typeof Plotly === 'undefined') {
     $('modalOverlay').classList.add('hidden');
   }
 
+  // ---- File Viewer ----
+
+  let currentViewerFile = null;
+  let currentViewerTab = 'json';
+  let viewerJsonData = null;
+  let viewerLogData = null;
+
+  function openFileViewer(sourceFile) {
+    currentViewerFile = sourceFile;
+    currentViewerTab = 'json';
+    viewerJsonData = null;
+    viewerLogData = null;
+
+    $('fileViewerTitle').textContent = sourceFile;
+    $('fileViewerJson').textContent = 'Loading...';
+    $('fileViewerLog').textContent = 'Loading...';
+    $('fileViewerJson').classList.remove('hidden');
+    $('fileViewerLog').classList.add('hidden');
+    setActiveTab('json');
+
+    const dataPath = $('dataPath').value.replace(/\/$/, '');
+    const jsonUrl = dataPath + '/' + sourceFile;
+    const logUrl = jsonUrl.replace('.json', '.log');
+
+    // Fetch JSON
+    fetch(jsonUrl)
+      .then(r => r.json())
+      .then(data => {
+        viewerJsonData = data;
+        const pre = $('fileViewerJson');
+        pre.innerHTML = '';
+        const code = document.createElement('code');
+        code.textContent = JSON.stringify(data, null, 2);
+        pre.appendChild(code);
+        if (typeof hljs !== 'undefined') hljs.highlightElement(code);
+      })
+      .catch(e => {
+        viewerJsonData = null;
+        $('fileViewerJson').textContent = 'Error loading JSON: ' + e.message;
+      });
+
+    // Fetch log
+    fetch(logUrl)
+      .then(r => {
+        if (!r.ok) throw new Error('Log not found');
+        return r.text();
+      })
+      .then(text => {
+        viewerLogData = text;
+        const pre = $('fileViewerLog');
+        pre.innerHTML = '';
+        const code = document.createElement('code');
+        code.textContent = text;
+        pre.appendChild(code);
+        if (typeof hljs !== 'undefined') hljs.highlightElement(code);
+      })
+      .catch(e => {
+        viewerLogData = null;
+        $('fileViewerLog').textContent = e.message;
+      });
+
+    $('fileViewerOverlay').classList.remove('hidden');
+  }
+
+  function closeFileViewer() {
+    $('fileViewerOverlay').classList.add('hidden');
+  }
+
+  function setActiveTab(tab) {
+    currentViewerTab = tab;
+    document.querySelectorAll('.file-viewer-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    $('fileViewerJson').classList.toggle('hidden', tab !== 'json');
+    $('fileViewerLog').classList.toggle('hidden', tab !== 'log');
+  }
+
   // ---- Column toggle ----
 
   function buildColumnToggles() {
@@ -2072,6 +2295,10 @@ if (typeof Plotly === 'undefined') {
       $('filterDateTo').value = '';
       populateFilters();
       applyFilters(); saveSettings();
+    });
+    $('btnClearExclusions').addEventListener('click', () => {
+      excludedRuns.clear();
+      renderChart(); saveSettings();
     });
 
     // Chart controls
@@ -2189,11 +2416,25 @@ if (typeof Plotly === 'undefined') {
       if (e.target === $('modalOverlay')) hideModal();
     });
 
+    // File Viewer
+    $('btnCloseFileViewer').addEventListener('click', closeFileViewer);
+    $('btnCopyFileViewer').addEventListener('click', () => {
+      const content = currentViewerTab === 'json' ? viewerJsonData : viewerLogData;
+      if (content) copyText(typeof content === 'string' ? content : JSON.stringify(content, null, 2), $('btnCopyFileViewer'));
+    });
+    $('fileViewerOverlay').addEventListener('click', (e) => {
+      if (e.target === $('fileViewerOverlay')) closeFileViewer();
+    });
+    document.querySelectorAll('.file-viewer-tab').forEach(btn => {
+      btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
+    });
+
     // Keyboard
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         hideColumnModal();
         hideModal();
+        closeFileViewer();
       }
     });
   }
