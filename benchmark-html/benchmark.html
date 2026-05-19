@@ -1860,12 +1860,12 @@ if (typeof Plotly === 'undefined') {
         orientation: narrow ? 'h' : 'v',
         x: narrow ? 0.5 : 1.02,
         xanchor: narrow ? 'center' : 'left',
-        y: narrow ? 1.12 : 1,
-        yanchor: 'bottom'
+        y: narrow ? 1.12 : 0.5,
+        yanchor: narrow ? 'bottom' : 'middle'
       },
       margin: {
         l: 50, r: narrow ? 20 : 120,
-        t: narrow ? 60 : 30,
+        t: narrow ? 100 : 30,
         b: 50
       }
     });
