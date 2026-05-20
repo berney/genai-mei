@@ -334,6 +334,7 @@ services:
   # OpenWebUI takes about 813MiB of RAM
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
+    #image: berne/open-webui
     profiles:
       # implicit default
       - ""
@@ -1176,8 +1177,49 @@ services:
     ports:
       - 8150:8080
 
-  qwen3-4b-128k-q6-benchmark:
+  qwen3-4b-128k-q6-voice:
+    <<: *x-model-vulkan-radv
+    environment: &qwen3-4b-128k-q6-env
+      <<: *x-model-vulkan-radv-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q6_K_XL.gguf
+      # Direct response mode, non-thinking-mode, give immediate response, better UX for voice chat
+      LLAMA_ARG_REASONING: off
+    ports:
+      - 8155:8080
+
+  qwen3-4b-128k-q6-cli:
+    <<: *x-model-vulkan-radv
+    command: >-
+      llama-cli
+      --help
+    environment: &qwen3-4b-128k-q6-env
+      <<: *x-model-vulkan-radv-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q6_K_XL.gguf
+    ports:
+      - 8150:8080
+
+  qwen3-4b-128k-q6-vulkan-radv-benchmark:
     <<: *x-model-benchmark-vulkan-radv
+    environment:
+      <<: *qwen3-4b-128k-q6-env
+
+  qwen3-4b-128k-q6-vulkan-amdvlk-benchmark:
+    <<: *x-model-benchmark-vulkan-amdvlk
+    environment:
+      <<: *qwen3-4b-128k-q6-env
+
+  qwen3-4b-128k-q6-rocm-6.4.4-benchmark:
+    <<: *x-model-benchmark-rocm-6.4.4
+    environment:
+      <<: *qwen3-4b-128k-q6-env
+
+  qwen3-4b-128k-q6-rocm-7.2-benchmark:
+    <<: *x-model-benchmark-rocm-7.2
+    environment:
+      <<: *qwen3-4b-128k-q6-env
+
+  qwen3-4b-128k-q6-rocm7-nightlies-benchmark:
+    <<: *x-model-benchmark-rocm7-nightlies
     environment:
       <<: *qwen3-4b-128k-q6-env
 
@@ -1362,12 +1404,16 @@ services:
     ports:
       - 8880:8880
 
+  # I think I built this variant
+  # I have this in my shell history:
+  #   docker compose run --rm docker-client save ghcr.io/remsky/kokoro-fastapi-rocm:latest-amd64 | podman load
   kokoro-tts-rocm:
     <<: *x-engine
     profiles:
       - model
       - tts
-    image: ghcr.io/remsky/kokoro-fastapi-rocm:latest-amd64
+    #image: ghcr.io/remsky/kokoro-fastapi-rocm:latest-amd64
+    image: berne/kokoro-fastapi-rocm:latest-amd64
     environment:
       API_LOG_LEVEL: INFO
     ports:
