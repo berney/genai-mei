@@ -1,0 +1,2 @@
+#!/bin/sh
+ANTHROPIC_BASE_URL=http://localhost:8090 ANTHROPIC_AUTH_TOKEN=claude-local claude
