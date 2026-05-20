@@ -62,6 +62,26 @@ models:
       # I want to try the Q8_K_XL quant
       - Qwen3-4B-128K-UD-Q8_K_XL.gguf
 
+  - repo: unsloth/Qwen3.6-35B-A3B-GGUF
+    include:
+      - Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
+      - mmproj-BF16.gguf
+
+  - repo: unsloth/Qwen3.6-35B-A3B-MTP-GGUF
+    include:
+      - Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
+      - mmproj-BF16.gguf
+
+  - repo: unsloth/Qwen3.6-27B-GGUF
+    include:
+      - Qwen3.6-27B-UD-Q8_K_XL.gguf
+      - mmproj-BF16.gguf
+
+  - repo: unsloth/Qwen3.6-27B-MTP-GGUF
+    include:
+      - Qwen3.6-27B-UD-Q8_K_XL.gguf
+      - mmproj-BF16.gguf
+
   - repo: openai/gpt-oss-20b
   - repo: aoi-ot/VibeVoice-Large
   - repo: microsoft/VibeVoice-ASR
