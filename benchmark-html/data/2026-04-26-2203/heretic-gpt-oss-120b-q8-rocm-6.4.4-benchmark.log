@@ -1,0 +1,9 @@
+time="2026-04-26T22:05:41+10:00" level=warning msg="No services to build"
+time="2026-04-26T22:05:41+10:00" level=warning msg="No services to build"
+ Container genai-mei-heretic-gpt-oss-120b-q8-rocm-6.4.4-benchmark-run-be446d1f21ff Creating 
+ Container genai-mei-heretic-gpt-oss-120b-q8-rocm-6.4.4-benchmark-run-be446d1f21ff Created 
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+

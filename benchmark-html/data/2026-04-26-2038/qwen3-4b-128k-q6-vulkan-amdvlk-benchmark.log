@@ -1,0 +1,14 @@
+time="2026-04-26T20:39:36+10:00" level=warning msg="No services to build"
+time="2026-04-26T20:39:36+10:00" level=warning msg="No services to build"
+ Container genai-mei-qwen3-4b-128k-q6-vulkan-amdvlk-benchmark-run-ab0d272ca177 Creating 
+ Container genai-mei-qwen3-4b-128k-q6-vulkan-amdvlk-benchmark-run-ab0d272ca177 Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |           pp512 |     1606.45 ± 628.33 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |          pp1024 |      1577.75 ± 11.13 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |          pp2048 |      1433.05 ± 87.83 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | Vulkan     | 999 |           tg128 |         54.48 ± 0.59 |
+
+build: 187a45637 (8910)

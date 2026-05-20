@@ -1,0 +1,14 @@
+time="2026-05-20T20:12:17+10:00" level=warning msg="No services to build"
+time="2026-05-20T20:12:17+10:00" level=warning msg="No services to build"
+ Container genai-mei-qwen36-35B-A3B-vulkan-amdvlk-benchmark-run-86e5bf784388 Creating 
+ Container genai-mei-qwen36-35B-A3B-vulkan-amdvlk-benchmark-run-86e5bf784388 Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Radeon 8060S Graphics (AMD open-source driver) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 32768 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen35moe 35B.A3B Q8_0         |  35.80 GiB |    34.66 B | Vulkan     | 999 |           pp512 |      530.96 ± 210.53 |
+| qwen35moe 35B.A3B Q8_0         |  35.80 GiB |    34.66 B | Vulkan     | 999 |          pp1024 |        605.07 ± 9.24 |
+| qwen35moe 35B.A3B Q8_0         |  35.80 GiB |    34.66 B | Vulkan     | 999 |          pp2048 |       570.08 ± 28.88 |
+| qwen35moe 35B.A3B Q8_0         |  35.80 GiB |    34.66 B | Vulkan     | 999 |           tg128 |         43.43 ± 4.02 |
+
+build: d14ce3dab (9235)

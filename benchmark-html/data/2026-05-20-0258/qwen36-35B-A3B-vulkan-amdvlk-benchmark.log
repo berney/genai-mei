@@ -1,0 +1,14 @@
+time="2026-05-20T03:01:41+10:00" level=warning msg="No services to build"
+time="2026-05-20T03:01:41+10:00" level=warning msg="No services to build"
+ Container genai-mei-qwen36-35B-A3B-vulkan-amdvlk-benchmark-run-322446c9d89e Creating 
+ Container genai-mei-qwen36-35B-A3B-vulkan-amdvlk-benchmark-run-322446c9d89e Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen35moe 35B.A3B Q8_0         |  35.80 GiB |    34.66 B | Vulkan     | 999 |           pp512 |      894.66 ± 270.16 |
+| qwen35moe 35B.A3B Q8_0         |  35.80 GiB |    34.66 B | Vulkan     | 999 |          pp1024 |       973.28 ± 16.90 |
+| qwen35moe 35B.A3B Q8_0         |  35.80 GiB |    34.66 B | Vulkan     | 999 |          pp2048 |       937.95 ± 41.52 |
+| qwen35moe 35B.A3B Q8_0         |  35.80 GiB |    34.66 B | Vulkan     | 999 |           tg128 |         45.34 ± 1.07 |
+
+build: d14ce3dab (9235)

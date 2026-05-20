@@ -1,0 +1,14 @@
+time="2026-05-20T19:55:42+10:00" level=warning msg="No services to build"
+time="2026-05-20T19:55:42+10:00" level=warning msg="No services to build"
+ Container genai-mei-qwen36-27B-vulkan-amdvlk-benchmark-run-24ee1950a14b Creating 
+ Container genai-mei-qwen36-27B-vulkan-amdvlk-benchmark-run-24ee1950a14b Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Radeon 8060S Graphics (AMD open-source driver) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 32768 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen35 27B Q8_0                |  32.89 GiB |    26.90 B | Vulkan     | 999 |           pp512 |         74.83 ± 6.73 |
+| qwen35 27B Q8_0                |  32.89 GiB |    26.90 B | Vulkan     | 999 |          pp1024 |         76.85 ± 0.32 |
+| qwen35 27B Q8_0                |  32.89 GiB |    26.90 B | Vulkan     | 999 |          pp2048 |         76.56 ± 0.63 |
+| qwen35 27B Q8_0                |  32.89 GiB |    26.90 B | Vulkan     | 999 |           tg128 |          5.78 ± 0.04 |
+
+build: d14ce3dab (9235)

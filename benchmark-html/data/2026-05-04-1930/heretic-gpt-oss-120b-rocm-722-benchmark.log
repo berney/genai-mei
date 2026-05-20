@@ -1,0 +1,10 @@
+time="2026-05-04T19:30:51+10:00" level=warning msg="No services to build"
+time="2026-05-04T19:30:51+10:00" level=warning msg="No services to build"
+ Container genai-mei-heretic-gpt-oss-120b-rocm-722-benchmark-run-c9b7334d2a2f Creating 
+ Container genai-mei-heretic-gpt-oss-120b-rocm-722-benchmark-run-c9b7334d2a2f Created 
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+time="2026-05-04T19:52:41+10:00" level=error msg="error waiting for container: unexpected EOF"
+

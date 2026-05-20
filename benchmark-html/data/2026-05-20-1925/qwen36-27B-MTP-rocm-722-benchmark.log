@@ -1,0 +1,11 @@
+time="2026-05-20T19:27:59+10:00" level=warning msg="No services to build"
+time="2026-05-20T19:27:59+10:00" level=warning msg="No services to build"
+ Container genai-mei-qwen36-27B-MTP-rocm-722-benchmark-run-18325fe167f3 Creating 
+ Container genai-mei-qwen36-27B-MTP-rocm-722-benchmark-run-18325fe167f3 Created 
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+main: error: failed to load model '/huggingface/hub/models--unsloth--Qwen3.6-27B-MTP-GGUF/snapshots/0da008d9b980b76520a952bb3aa4abbaa0955647/Qwen3.6-27B-UD-Q8_K_XL.gguf'
+
+Error: executing /usr/local/bin/docker-compose run --rm qwen36-27B-MTP-rocm-722-benchmark: exit status 1

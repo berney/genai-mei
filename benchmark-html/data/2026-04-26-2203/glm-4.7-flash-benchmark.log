@@ -1,0 +1,14 @@
+time="2026-04-26T22:04:50+10:00" level=warning msg="No services to build"
+time="2026-04-26T22:04:50+10:00" level=warning msg="No services to build"
+ Container genai-mei-glm-4.7-flash-benchmark-run-4b813bd05fb2 Creating 
+ Container genai-mei-glm-4.7-flash-benchmark-run-4b813bd05fb2 Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| deepseek2 30B.A3B Q8_0         |  33.17 GiB |    29.94 B | Vulkan     | 999 |           pp512 |      853.53 ± 238.19 |
+| deepseek2 30B.A3B Q8_0         |  33.17 GiB |    29.94 B | Vulkan     | 999 |          pp1024 |        902.14 ± 5.09 |
+| deepseek2 30B.A3B Q8_0         |  33.17 GiB |    29.94 B | Vulkan     | 999 |          pp2048 |       813.48 ± 28.98 |
+| deepseek2 30B.A3B Q8_0         |  33.17 GiB |    29.94 B | Vulkan     | 999 |           tg128 |         39.36 ± 0.32 |
+
+build: 187a45637 (8910)

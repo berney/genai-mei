@@ -1,0 +1,15 @@
+time="2026-05-04T19:21:18+10:00" level=warning msg="No services to build"
+ Image berne/amd-strix-halo-toolboxes:rocm-7.2.2 Pulling 
+ Image berne/amd-strix-halo-toolboxes:rocm-7.2.2 denied: requested access to the resource is denied 
+ Image berne/amd-strix-halo-toolboxes:rocm-7.2.2 Building 
+ Image berne/amd-strix-halo-toolboxes:rocm-7.2.2 Building 
+ Image berne/amd-strix-halo-toolboxes:rocm-7.2.2 Built 
+ Image berne/amd-strix-halo-toolboxes:rocm-7.2.2 Built 
+ Container genai-mei-heretic-gpt-oss-120b-rocm-722-benchmark-run-8dbd0c911a25 Creating 
+ Container genai-mei-heretic-gpt-oss-120b-rocm-722-benchmark-run-8dbd0c911a25 Created 
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+
+Error: executing /usr/local/bin/docker-compose run --rm heretic-gpt-oss-120b-rocm-722-benchmark: exit status 137
