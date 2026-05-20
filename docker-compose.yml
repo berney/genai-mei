@@ -184,7 +184,7 @@ x-model-benchmark-rocm7-nightlies: &x-model-benchmark-rocm7-nightlies
 
 volumes:
   openwebui-data:
-  perplexica-uploads:
+  vane-uploads:
 
 services:
   searxng:
@@ -204,18 +204,17 @@ services:
       timeout: 10s
       retries: 3
 
-  perplexica:
+  # new name of perplexica
+  vane:
     profiles:
       # implicit default
       - ""
     # tag `latest` has a builtin SearxNG
     # tag `slim-latest` doesn't
-    image: docker.io/itzcrazykns1337/perplexica:slim-latest
-    #container_name: perplexica
-    #network_mode: host
+    image: docker.io/itzcrazykns1337/vane:slim-latest
     volumes:
-      - ./perplexica/data:/home/perplexica/data:Z
-      - perplexica-uploads:/home/perplexica/uploads:Z
+      - ./vane/data:/home/vane/data:Z
+      - vane-uploads:/home/vane/uploads:Z
     environment:
       - SEARXNG_API_URL=http://searxng:8080
       - PORT=3001
