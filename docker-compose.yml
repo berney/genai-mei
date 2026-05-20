@@ -150,7 +150,7 @@ x-model-benchmark-vulkan-radv: &x-model-benchmark-vulkan-radv
     <<: [*x-model-env, *x-engine-env]
 
 x-model-benchmark-vulkan-amdvlk: &x-model-benchmark-vulkan-amdvlk
-  <<: [*x-model-benchmark, *x-engine-vulkan-radv]
+  <<: [*x-model-benchmark, *x-engine-vulkan-amdvlk]
   profiles:
     - benchmark
     - vulkan-radv
