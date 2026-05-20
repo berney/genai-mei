@@ -207,16 +207,7 @@ models:
       - strong multimodal perception and reasoning ability
     cmd: podman compose up qwen36-35B-A3B
     cmdStop: podman compose stop qwen36-35B-A3B
-    proxy: http://qwen36-35B-A3B:8080
-    ttl: 3600
-
-  qwen3.6-35B-A3B-coding:
-    name: unsloth/Qwen3.6-35B-A3B Coding
-    description: |
-      Temperature and other settings recommended for precise coding tasks.
-    cmd: podman compose up qwen36-35B-A3B-coding
-    cmdStop: podman compose stop qwen36-35B-A3B-coding
-    proxy: http://qwen36-35B-A3B-coding:8080
+    proxy: http://qwen36-35b-a3b:8080
     ttl: 3600
 
   qwen3.6-35B-A3B-MTP:
@@ -227,16 +218,7 @@ models:
       - strong multimodal perception and reasoning ability
     cmd: podman compose up qwen36-35B-A3B-MTP
     cmdStop: podman compose stop qwen36-35B-A3B-MTP
-    proxy: http://qwen36-35B-A3B-mtp:8080
-    ttl: 3600
-
-  qwen3.6-35B-A3B-MTP-coding:
-    name: unsloth/Qwen3.6-35B-A3B-MTP Coding
-    description: |
-      Temperature and other settings recommended for precise coding tasks.
-    cmd: podman compose up qwen36-35B-A3B-MTP-coding
-    cmdStop: podman compose stop qwen36-35B-A3B-MTP-coding
-    proxy: http://qwen36-35B-A3B-mtp-coding:8080
+    proxy: http://qwen36-35b-a3b-mtp:8080
     ttl: 3600
     aliases:
       - claude-sonnet-4-6
