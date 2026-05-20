@@ -1,0 +1,8 @@
+#!/bin/sh
+export PODMAN_COMPOSE_WARNING_LOGS=false
+docker compose pull
+docker compose --profile model pull
+docker compose --profile whisper pull
+docker compose build --pull
+docker compose --profile model build --pull
+docker compose --profile whisper build --pull
