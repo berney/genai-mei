@@ -739,8 +739,17 @@ services:
       #LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-Next-GGUF/snapshots/c34da54d209ead4748a1e2f4b5a90edeb6e8bbd2/UD-Q8_K_XL/Qwen3-Coder-Next-UD-Q8_K_XL-00001-of-00003.gguf
       #LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-Next-GGUF/snapshots/881901f86566eb2e7d7e4e6571f3133765b45f76/UD-Q8_K_XL/Qwen3-Coder-Next-UD-Q8_K_XL-00001-of-00003.gguf
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-Next-GGUF/snapshots/ce09c67b53bc8739eef83fe67b2f5d293c270632/UD-Q8_K_XL/Qwen3-Coder-Next-UD-Q8_K_XL-00001-of-00003.gguf
+      LLAMA_ARG_CONT_BATCHING: off
     ports:
       - 8140:8080
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --min-p 0.01
+    #  --top-p 0.95
+    #  --repeat-penalty 1.0
+    #  --typical 0.95
 
   qwen3-coder-next-vulkan-radv-benchmark:
     <<: *x-model-benchmark-vulkan-radv
