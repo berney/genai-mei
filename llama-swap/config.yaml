@@ -134,6 +134,15 @@ models:
     ttl: 0
     aliases: ["small-q6", "fast-q6", "quick-q6", "instant-q6", "small", "fast", "quick", "instant"]
 
+  qwen3-4b-q6-voice:
+    name: "Qwen3-4B-128K-Q6_K_XL Reasoning Off"
+    description: "Voice chat"
+    cmd: podman compose up qwen3-4b-128k-q6-voice
+    cmdStop: podman compose stop qwen3-4b-128k-q6-voice
+    proxy: http://qwen3-4b-128k-q6-voice:8080
+    ttl: 0
+    aliases: ["voice"]
+
   # I want to test Q8_K_XL
   qwen3-4b-q8:
     name: "Qwen3-4B-128K-Q8_K_XL"
@@ -189,7 +198,51 @@ models:
     cmdStop: podman compose stop qwen3-coder-next
     proxy: http://qwen3-coder-next:8080
     ttl: 3600
-    #aliases: ["qwen3-coder-next"]
+
+  qwen3.6-35B-A3B:
+    name: unsloth/Qwen3.6-35B-A3B
+    description: |
+      MoE model (35B total / 3B active), featuring:
+      - exceptional agentic coding capability competitive with much larger models
+      - strong multimodal perception and reasoning ability
+    cmd: podman compose up qwen36-35B-A3B
+    cmdStop: podman compose stop qwen36-35B-A3B
+    proxy: http://qwen36-35B-A3B:8080
+    ttl: 3600
+
+  qwen3.6-35B-A3B-coding:
+    name: unsloth/Qwen3.6-35B-A3B Coding
+    description: |
+      Temperature and other settings recommended for precise coding tasks.
+    cmd: podman compose up qwen36-35B-A3B-coding
+    cmdStop: podman compose stop qwen36-35B-A3B-coding
+    proxy: http://qwen36-35B-A3B-coding:8080
+    ttl: 3600
+
+  qwen3.6-35B-A3B-MTP:
+    name: unsloth/Qwen3.6-35B-A3B-MTP
+    description: |
+      MoE model (35B total / 3B active), featuring:
+      - exceptional agentic coding capability competitive with much larger models
+      - strong multimodal perception and reasoning ability
+    cmd: podman compose up qwen36-35B-A3B-MTP
+    cmdStop: podman compose stop qwen36-35B-A3B-MTP
+    proxy: http://qwen36-35B-A3B-mtp:8080
+    ttl: 3600
+
+  qwen3.6-35B-A3B-MTP-coding:
+    name: unsloth/Qwen3.6-35B-A3B-MTP Coding
+    description: |
+      Temperature and other settings recommended for precise coding tasks.
+    cmd: podman compose up qwen36-35B-A3B-MTP-coding
+    cmdStop: podman compose stop qwen36-35B-A3B-MTP-coding
+    proxy: http://qwen36-35B-A3B-mtp-coding:8080
+    ttl: 3600
+    aliases:
+      - claude-sonnet-4-6
+      - claude-haiku-4-5
+      - claude-haiku-4-5-20251001
+      - claude-opus-4-7
 
   glm-4.7-flash:
     name: "unsloth/GLM-4.7-Flash-GGUF"
@@ -368,6 +421,7 @@ groups:
 #      - "granite-docling"
 #      - "qwen-vision"
       - "qwen3-4b-q6"
+      - "qwen3-4b-q6-voice"
       #- "qwen3-4b-q8"
       - kokoro-tts
       - kokoro-tts-rocm
@@ -381,6 +435,7 @@ hooks:
 #      - "granite-docling"
 #      - "qwen-vision"
       - "qwen3-4b-q6"
+      - "qwen3-4b-q6-voice"
       #- "qwen3-4b-q8"
       - kokoro-tts
       - whisper
