@@ -798,6 +798,376 @@ services:
 
 
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
+  qwen36-35B-A3B: &qwen36-35B-A3B
+    <<: *x-model-rocm-723
+    environment: &qwen36-35B-A3B-env
+      <<: *x-model-rocm-723-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-GGUF/snapshots/a483e9e6cbd595906af30beda3187c2663a1118c/Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
+      LLAMA_ARG_CONT_BATCHING: off
+      # llama.cpp default is 40, unsloth guide recommends 20
+      LLAMA_ARG_TOP_K: 20
+    ports:
+      - 8140:8080
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --presence-penalty 1.5
+      --mmproj /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-GGUF/snapshots/a483e9e6cbd595906af30beda3187c2663a1118c/mmproj-BF16.gguf
+    #  --top-p 0.95 (default)
+    #  --repeat-penalty 1.0 (default)
+    #  --typical 0.95 (default is 1.0)
+
+  qwen36-35B-A3B-MTP: &qwen36-35B-A3B-MTP
+    <<: *x-model-rocm-723
+    environment: &qwen36-35B-A3B-MTP-env
+      <<: *x-model-rocm-723-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-MTP-GGUF/snapshots/b8efbbece76dc9103a6a45b7ed95b26c3932fc5f/Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
+      LLAMA_ARG_CONT_BATCHING: off
+      # llama.cpp default is 40, unsloth guide recommends 20
+      LLAMA_ARG_TOP_K: 20
+    ports:
+      - 8140:8080
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --presence-penalty 1.5
+      --mmproj /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-MTP-GGUF/snapshots/b8efbbece76dc9103a6a45b7ed95b26c3932fc5f/mmproj-BF16.gguf
+      --spec-type draft-mtp
+    # ben: default is 3, 3 seems the best
+    #  --spec-draft-n-max 16
+
+  qwen36-35B-A3B-coding: &qwen36-35B-A3B-coding
+    <<: *qwen36-35B-A3B
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 0.6
+    #  --presence-penalty 0.00 (default)
+
+  qwen36-35B-A3B-vulkan-radv:
+    <<: [*x-model-vulkan-radv, *qwen36-35B-A3B]
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-vulkan-radv-benchmark:
+    <<: *x-model-benchmark-vulkan-radv
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-vulkan-amdvlk:
+    <<: [*x-model-vulkan-amdvlk, *qwen36-35B-A3B]
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-vulkan-amdvlk-benchmark:
+    <<: *x-model-benchmark-vulkan-amdvlk
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-rocm-6.4.4:
+    <<: [*x-model-rocm-6.4.4, *qwen36-35B-A3B]
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-rocm-6.4.4-benchmark:
+    <<: *x-model-benchmark-rocm-6.4.4
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-rocm-7.2:
+    <<: [*x-model-rocm-7.2, *qwen36-35B-A3B]
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-rocm-7.2-benchmark:
+    <<: *x-model-benchmark-rocm-7.2
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-rocm-722:
+    <<: [*x-model-rocm-722, *qwen36-35B-A3B]
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-rocm-722-benchmark:
+    <<: *x-model-benchmark-rocm-722
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-rocm-723:
+    <<: [*x-model-rocm-723, *qwen36-35B-A3B]
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-rocm-723-benchmark:
+    <<: *x-model-benchmark-rocm-723
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-rocm7-nightlies:
+    <<: [*x-model-rocm7-nightlies, *qwen36-35B-A3B]
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  qwen36-35B-A3B-rocm7-nightlies-benchmark:
+    <<: *x-model-benchmark-rocm7-nightlies
+    environment:
+      <<: *qwen36-35B-A3B-env
+
+  # Qwen3.6 35B A3B MTP
+  qwen36-35B-A3B-MTP-vulkan-radv:
+    <<: [*x-model-vulkan-radv, *qwen36-35B-A3B-MTP]
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-vulkan-radv-benchmark:
+    <<: *x-model-benchmark-vulkan-radv
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-vulkan-amdvlk:
+    <<: [*x-model-vulkan-amdvlk, *qwen36-35B-A3B-MTP]
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-vulkan-amdvlk-benchmark:
+    <<: *x-model-benchmark-vulkan-amdvlk
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-rocm-6.4.4:
+    <<: [*x-model-rocm-6.4.4, *qwen36-35B-A3B-MTP]
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-rocm-6.4.4-benchmark:
+    <<: *x-model-benchmark-rocm-6.4.4
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-rocm-7.2:
+    <<: [*x-model-rocm-7.2, *qwen36-35B-A3B-MTP]
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-rocm-7.2-benchmark:
+    <<: *x-model-benchmark-rocm-7.2
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-rocm-722:
+    <<: [*x-model-rocm-722, *qwen36-35B-A3B-MTP]
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-rocm-722-benchmark:
+    <<: *x-model-benchmark-rocm-722
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-rocm-723:
+    <<: [*x-model-rocm-723, *qwen36-35B-A3B-MTP]
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-rocm-723-benchmark:
+    <<: *x-model-benchmark-rocm-723
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-rocm7-nightlies:
+    <<: [*x-model-rocm7-nightlies, *qwen36-35B-A3B-MTP]
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+  qwen36-35B-A3B-MTP-rocm7-nightlies-benchmark:
+    <<: *x-model-benchmark-rocm7-nightlies
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
+
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
+  qwen36-27B: &qwen36-27B
+    <<: *x-model-rocm-723
+    environment: &qwen36-27B-env
+      <<: *x-model-rocm-723-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-27B-GGUF/snapshots/82d411acf4a06cfb8d9b073a5211bf410bfc29bf/Qwen3.6-27B-UD-Q8_K_XL.gguf
+      LLAMA_ARG_CONT_BATCHING: off
+      # llama.cpp default is 40, unsloth guide recommends 20
+      LLAMA_ARG_TOP_K: 20
+    ports:
+      - 8140:8080
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --presence-penalty 1.5
+      --mmproj /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-GGUF/snapshots/82d411acf4a06cfb8d9b073a5211bf410bfc29bf/mmproj-BF16.gguf
+
+  qwen36-27B-MTP: &qwen36-27B-MTP
+    <<: *x-model-rocm-723
+    environment: &qwen36-27B-MTP-env
+      <<: *x-model-rocm-723-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-27B-MTP-GGUF/snapshots/0da008d9b980b76520a952bb3aa4abbaa0955647/Qwen3.6-27B-UD-Q8_K_XL.gguf
+      LLAMA_ARG_CONT_BATCHING: off
+      # llama.cpp default is 40, unsloth guide recommends 20
+      LLAMA_ARG_TOP_K: 20
+    ports:
+      - 8140:8080
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --presence-penalty 1.5
+      --mmproj /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-GGUF/snapshots/0da008d9b980b76520a952bb3aa4abbaa0955647/mmproj-BF16.gguf
+      --spec-type draft-mtp
+    # --spec-draft-n-max 3
+    # # (default is 3)
+
+  qwen36-27B-vulkan-radv:
+    <<: [*x-model-vulkan-radv, *qwen36-27B]
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-vulkan-radv-benchmark:
+    <<: *x-model-benchmark-vulkan-radv
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-vulkan-amdvlk:
+    <<: [*x-model-vulkan-amdvlk, *qwen36-27B]
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-vulkan-amdvlk-benchmark:
+    <<: *x-model-benchmark-vulkan-amdvlk
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-rocm-6.4.4:
+    <<: [*x-model-rocm-6.4.4, *qwen36-27B]
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-rocm-6.4.4-benchmark:
+    <<: *x-model-benchmark-rocm-6.4.4
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-rocm-7.2:
+    <<: [*x-model-rocm-7.2, *qwen36-27B]
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-rocm-7.2-benchmark:
+    <<: *x-model-benchmark-rocm-7.2
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-rocm-722:
+    <<: [*x-model-rocm-722, *qwen36-27B]
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-rocm-722-benchmark:
+    <<: *x-model-benchmark-rocm-722
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-rocm-723:
+    <<: [*x-model-rocm-723, *qwen36-27B]
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-rocm-723-benchmark:
+    <<: *x-model-benchmark-rocm-723
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-rocm7-nightlies:
+    <<: [*x-model-rocm7-nightlies, *qwen36-27B]
+    environment:
+      <<: *qwen36-27B-env
+
+  qwen36-27B-rocm7-nightlies-benchmark:
+    <<: *x-model-benchmark-rocm7-nightlies
+    environment:
+      <<: *qwen36-27B-env
+
+  # Qwen3.6 27B MTP
+  qwen36-27B-MTP-vulkan-radv:
+    <<: [*x-model-vulkan-radv, *qwen36-27B-MTP]
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-vulkan-radv-benchmark:
+    <<: *x-model-benchmark-vulkan-radv
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-vulkan-amdvlk:
+    <<: [*x-model-vulkan-amdvlk, *qwen36-27B-MTP]
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-vulkan-amdvlk-benchmark:
+    <<: *x-model-benchmark-vulkan-amdvlk
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-rocm-6.4.4:
+    <<: [*x-model-rocm-6.4.4, *qwen36-27B-MTP]
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-rocm-6.4.4-benchmark:
+    <<: *x-model-benchmark-rocm-6.4.4
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-rocm-7.2:
+    <<: [*x-model-rocm-7.2, *qwen36-27B-MTP]
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-rocm-7.2-benchmark:
+    <<: *x-model-benchmark-rocm-7.2
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-rocm-722:
+    <<: [*x-model-rocm-722, *qwen36-27B-MTP]
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-rocm-722-benchmark:
+    <<: *x-model-benchmark-rocm-722
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-rocm-723:
+    <<: [*x-model-rocm-723, *qwen36-27B-MTP]
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-rocm-723-benchmark:
+    <<: *x-model-benchmark-rocm-723
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-rocm7-nightlies:
+    <<: [*x-model-rocm7-nightlies, *qwen36-27B-MTP]
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  qwen36-27B-MTP-rocm7-nightlies-benchmark:
+    <<: *x-model-benchmark-rocm7-nightlies
+    environment:
+      <<: *qwen36-27B-MTP-env
+
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   qwen3-4b-128k-q6:
     <<: *x-model-vulkan-radv
     environment: &qwen3-4b-128k-q6-env
