@@ -97,11 +97,11 @@ x-model: &x-model
   environment: &x-model-env
     LLAMA_ARG_FLASH_ATTN: auto
     LLAMA_ARG_HOST: 0.0.0.0
-    LLAMA_ARG_CONT_BATCHING: on
-    LLAMA_ARG_N_PARALLEL: 1
+    #LLAMA_ARG_CONT_BATCHING: on
+    #LLAMA_ARG_N_PARALLEL: 1
     LLAMA_ARG_N_GPU_LAYERS: all
-    LLAMA_ARG_CONTEXT_SHIFT: on
-    LLAMA_ARG_CTX_SIZE: 32768
+    #LLAMA_ARG_CONTEXT_SHIFT: on
+    #LLAMA_ARG_CTX_SIZE: 32768
 
 x-model-benchmark: &x-model-benchmark
   <<: *x-model
