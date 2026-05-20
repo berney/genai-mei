@@ -61,6 +61,22 @@ x-engine-rocm-7.2: &x-engine-rocm-7.2
     args:
       TAG: rocm-7.2
 
+x-engine-rocm-722: &x-engine-rocm-722
+  <<: *x-engine
+  image: berne/amd-strix-halo-toolboxes:rocm-7.2.2
+  build:
+    context: amd-strix-halo-toolboxes
+    args:
+      TAG: rocm-7.2.2
+
+x-engine-rocm-723: &x-engine-rocm-723
+  <<: *x-engine
+  image: berne/amd-strix-halo-toolboxes:rocm-7.2.3
+  build:
+    context: amd-strix-halo-toolboxes
+    args:
+      TAG: rocm-7.2.3
+
 x-engine-rocm7-nightlies: &x-engine-rocm7-nightlies
   <<: *x-engine
   image: berne/amd-strix-halo-toolboxes:rocm7-nightlies
@@ -133,6 +149,22 @@ x-model-rocm-7.2: &x-model-rocm-7.2
   environment: &x-model-rocm-7.2-env
     <<: [*x-model-env, *x-engine-env]
 
+x-model-rocm-722: &x-model-rocm-722
+  <<: [*x-model, *x-engine-rocm-722]
+  profiles:
+    - model
+    - rocm-7.2.2
+  environment: &x-model-rocm-722-env
+    <<: [*x-model-env, *x-engine-env]
+
+x-model-rocm-723: &x-model-rocm-723
+  <<: [*x-model, *x-engine-rocm-723]
+  profiles:
+    - model
+    - rocm-7.2.3
+  environment: &x-model-rocm-723-env
+    <<: [*x-model-env, *x-engine-env]
+
 x-model-rocm7-nightlies: &x-model-rocm7-nightlies
   <<: [*x-model, *x-engine-rocm7-nightlies]
   profiles:
@@ -171,6 +203,22 @@ x-model-benchmark-rocm-7.2: &x-model-benchmark-rocm-7.2
     - benchmark
     - rocm-7.2
   environment: &x-model-benchmark-rocm-7.2-env
+    <<: [*x-model-env, *x-engine-env]
+
+x-model-benchmark-rocm-722: &x-model-benchmark-rocm-722
+  <<: [*x-model-benchmark, *x-engine-rocm-722]
+  profiles:
+    - benchmark
+    - rocm-7.2.2
+  environment: &x-model-benchmark-rocm-722-env
+    <<: [*x-model-env, *x-engine-env]
+
+x-model-benchmark-rocm-723: &x-model-benchmark-rocm-723
+  <<: [*x-model-benchmark, *x-engine-rocm-723]
+  profiles:
+    - benchmark
+    - rocm-7.2.3
+  environment: &x-model-benchmark-rocm-723-env
     <<: [*x-model-env, *x-engine-env]
 
 x-model-benchmark-rocm7-nightlies: &x-model-benchmark-rocm7-nightlies
@@ -522,6 +570,34 @@ services:
 
   heretic-gpt-oss-120b-rocm-7.2-benchmark:
     <<: *x-model-benchmark-rocm-7.2
+    environment:
+      <<: *heretic-gpt-oss-120b-env
+
+  heretic-gpt-oss-120b-rocm-722:
+    # Merge precedence is (preferred) parent, first, to last.
+    # Once a field is set any dupes are ignored.
+    <<: [*x-model-rocm-722, *heretic-gpt-oss-120b]
+    # x-model-base-vulkan-amdvlk inherits model-base that sets environ
+    # So we need to override it here
+    environment:
+      <<: *heretic-gpt-oss-120b-env
+
+  heretic-gpt-oss-120b-rocm-722-benchmark:
+    <<: *x-model-benchmark-rocm-722
+    environment:
+      <<: *heretic-gpt-oss-120b-env
+
+  heretic-gpt-oss-120b-rocm-723:
+    # Merge precedence is (preferred) parent, first, to last.
+    # Once a field is set any dupes are ignored.
+    <<: [*x-model-rocm-723, *heretic-gpt-oss-120b]
+    # x-model-base-vulkan-amdvlk inherits model-base that sets environ
+    # So we need to override it here
+    environment:
+      <<: *heretic-gpt-oss-120b-env
+
+  heretic-gpt-oss-120b-rocm-723-benchmark:
+    <<: *x-model-benchmark-rocm-723
     environment:
       <<: *heretic-gpt-oss-120b-env
 
