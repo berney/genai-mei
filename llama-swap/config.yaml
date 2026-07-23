@@ -153,52 +153,6 @@ models:
     ttl: 0
     aliases: ["small-q8", "fast-q8", "quick-q8", "instant-q8"]
 
-
-  # Large uncensored model
-  heretic-gpt-oss-120b:
-    name: "Heretic-GPT-OSS-120B"
-    description: "Large uncensored general model"
-    cmd: podman compose up heretic-gpt-oss-120b
-    cmdStop: podman compose stop heretic-gpt-oss-120b
-    proxy: http://heretic-gpt-oss-120b:8080
-    ttl: 600
-    aliases: ["heretic", "uncensored", "gpt-oss", "gpt-120b"]
-
-  heretic-gpt-oss-120b-q8:
-    name: "Heretic-GPT-OSS-120B-Q8_0"
-    description: "Large uncensored general model"
-    cmd: podman compose up heretic-gpt-oss-120b-q8
-    cmdStop: podman compose stop heretic-gpt-oss-120b-q8
-    proxy: http://heretic-gpt-oss-120b-q8:8080
-    ttl: 600
-    aliases: ["heretic-q8", "uncensored-q8", "gpt-oss-q8", "gpt-120b-8q"]
-
-  qwen3-coder-30b:
-    name: "Qwen3-Coder-30B-A3B"
-    description: "Best coding model - MoE 30B/3B active"
-    cmd: podman compose up qwen3-coder-30b
-    cmdStop: podman compose stop qwen3-coder-30b
-    proxy: http://qwen3-coder-30b:8080
-    ttl: 900
-    #aliases: ["coder", "coding", "code", "dev", "default"]
-    aliases: ["qwen3-coder-30b-a3b", "qwen3-coder-30b", "qwen3-coder", "qwen3"]
-
-  # --------------------------------------------------------------------------------
-  # New
-  # --------------------------------------------------------------------------------
-  qwen3-coder-next:
-    name: unsloth/Qwen3-Coder-Next-GGUF
-    description: |
-      An open-weight language model designed specifically for coding agents and local development.
-
-        - *Super Efficient with Significant Performance:* With only 3B activated parameters (80B total parameters), it achieves performance comparable to models with 10–20x more active parameters, making it highly cost-effective for agent deployment.
-        - *Advanced Agentic Capabilities:* Through an elaborate training recipe, it excels at long-horizon reasoning, complex tool usage, and recovery from execution failures, ensuring robust performance in dynamic coding tasks.
-        - *Versatile Integration with Real-World IDE:* Its 256k context length, combined with adaptability to various scaffold templates, enables seamless integration with different CLI/IDE platforms (e.g., Claude Code, Qwen Code, Qoder, Kilo, Trae, Cline, etc.), supporting diverse development environments.
-    cmd: podman compose up qwen3-coder-next
-    cmdStop: podman compose stop qwen3-coder-next
-    proxy: http://qwen3-coder-next:8080
-    ttl: 3600
-
   qwen3.6-35B-A3B:
     name: unsloth/Qwen3.6-35B-A3B
     description: |
@@ -221,45 +175,17 @@ models:
     proxy: http://qwen36-35b-a3b-mtp:8080
     ttl: 3600
     aliases:
+      - claude-sonnet-5
       - claude-sonnet-4-6
       - claude-haiku-4-5
       - claude-haiku-4-5-20251001
       - claude-opus-4-7
-
-  glm-4.7-flash:
-    name: "unsloth/GLM-4.7-Flash-GGUF"
-    description: |
-      GLM-4.7-Flash is a 30B-A3B MoE model.
-      As the strongest model in the 30B class, GLM-4.7-Flash offers a new option for lightweight deployment that balances performance and efficiency.
-    cmd: podman compose up glm-4.7-flash
-    cmdStop: podman compose stop glm-4.7-flash
-    proxy: http://glm-4.7-flash:8080
-    ttl: 3600
-    aliases: ["glm", "glm-4.7", "coding", "coder", "code", "dev", "default"]
-
-  # --------------------------------------------------------------------------------
-  # Multi Modal
-  # --------------------------------------------------------------------------------
-  qwen2.5-omni-7b:
-    name: unsloth/Qwen2.5-Omni-7B-GGUF
-    description: |
-      An end-to-end multimodal model designed to perceive diverse modalities, including text, images, audio, and video, while simultaneously generating text and natural speech responses in a streaming manner.
-    cmd: podman compose up qwen2.5-omni-7b
-    cmdStop: podman compose stop qwen2.5-omni-7b
-    proxy: http://qwen2.5-omni-7b:8080
-    ttl: 3600
-    aliases: ["qwen2.5-omni", "omni", "multimodal", "mutli-modal"]
-
-  glm-4.6v-flash:
-    name: unsloth/GLM-4.6V-Flash-GGUF
-    description: |
-      GLM-4.6V series model includes two versions: GLM-4.6V (106B), a foundation model designed for cloud and high-performance cluster scenarios, and GLM-4.6V-Flash (9B), a lightweight model optimized for local deployment and low-latency applications. GLM-4.6V scales its context window to 128k tokens in training, and achieves SoTA performance in visual understanding among models of similar parameter scales. Crucially, we integrate native Function Calling capabilities for the first time. This effectively bridges the gap between "visual perception" and "executable action" providing a unified technical foundation for multimodal agents in real-world business scenarios.
-    cmd: podman compose up glm-4.6v-flash
-    cmdStop: podman compose stop glm-4.6v-flash
-    proxy: http://glm-4.6v-flash:8080
-    ttl: 3600
-    aliases: ["pdf"]
-
+      - claude-opus-4-8
+      - coding
+      - coder
+      - code
+      - dev
+      - default
 
   # --------------------------------------------------------------------------------
   kokoro-tts:
@@ -291,98 +217,6 @@ models:
     aliases: ["whisper.cpp", "stt"]
     ttl: 0
 
-  # --------------------------------------------------------------------------------
-  # Jesse's Mess #4
-  # --------------------------------------------------------------------------------
-  #
-  #gpt-120b:
-  #  name: "GPT-OSS-120B"
-  #  description: "Large reasoning model"
-  #  cmd: podman compose run --rm -it gpt-120b
-  #  #  ${kyuz0-vulkan}
-  #  #  ${llama-server-base}
-  #  #  ${gpt-120b-model}
-  #  #cmdStop: "podman stop -t 30 vulkan-${PORT}"
-  #  cmdStop: podman compose stop gpt-120b
-  #  ttl: 3600
-  #  aliases: ["gpt-4", "default", "main", "reasoning"]
-
-  #gemma-27b:
-  #  name: "Gemma-3-27B-Instruct"
-  #  description: "Fast 27B coding/general"
-  #  cmd: >
-  #    ${kyuz0-vulkan}
-  #    ${llama-server-base}
-  #    ${gemma-27b-model}
-  #  cmdStop: "podman stop -t 30 vulkan-${PORT}"
-  #  ttl: 1800
-  #  aliases: ["gemma", "fast"]
-
-  #qwen-coder-30b:
-  #  name: "Qwen3-Coder-30B"
-  #  description: "Dedicated coding model"
-  #  cmd: >
-  #    ${kyuz0-rocm7}
-  #    ${llama-server-base}
-  #    ${qwen-coder-30b-model}
-  #  cmdStop: "podman stop -t 30 rocm7-${PORT}"
-  #  ttl: 1800
-  #  aliases: ["coder", "dev"]
-
-  #bge-embed:
-  #  name: "BGE-M3"
-  #  description: "Embedding model (RAG)"
-  #  cmd: >
-  #    ${kyuz0-vulkan}
-  #    ${llama-server-base}
-  #    ${embed-bge-model}
-  #  cmdStop: "podman stop -t 10 vulkan-${PORT}"
-  #  ttl: 0
-  #  aliases: ["embed"]
-
-  #bge-rerank:
-  #  name: "BGE-Reranker-v2-M3"
-  #  description: "Reranker (RAG)"
-  #  cmd: >
-  #    ${kyuz0-vulkan}
-  #    ${llama-server-base}
-  #    ${reranker-bge-model}
-  #  cmdStop: "podman stop -t 10 vulkan-${PORT}"
-  #  ttl: 0
-  #  aliases: ["rerank"]
-
-  #granite-docling:
-  #  name: "Granite-Docling-258M"
-  #  description: "Document parsing (PDF/Doc)"
-  #  cmd: >
-  #    ${kyuz0-vulkan}
-  #    ${llama-server-base}
-  #    ${granite-docling-model}
-  #  cmdStop: "podman stop -t 10 vulkan-${PORT}"
-  #  ttl: 0
-  #  aliases: ["docling", "pdf"]
-
-  #qwen-vision:
-  #  name: "Qwen3-VL-8B"
-  #  description: "Vision + text"
-  #  cmd: >
-  #    ${kyuz0-vulkan}
-  #    ${llama-server-base}
-  #    ${vision-qwen-model}
-  #  cmdStop: "podman stop -t 20 vulkan-${PORT}"
-  #  ttl: 0
-  #  aliases: ["vision"]
-
-  #qwen-4b:
-  #  name: "Qwen3-4B-128K"
-  #  description: "Small ultra-fast model"
-  #  cmd: >
-  #    ${kyuz0-vulkan}
-  #    ${llama-server-base}
-  #    ${qwen-4b-model}
-  #  cmdStop: "podman stop -t 10 vulkan-${PORT}"
-  #  ttl: 0
-  #  aliases: ["small", "instant"]
 
 groups:
 #  main:
@@ -402,12 +236,12 @@ groups:
 #      - "bge-rerank"
 #      - "granite-docling"
 #      - "qwen-vision"
-      - "qwen3-4b-q6"
-      - "qwen3-4b-q6-voice"
+      #- "qwen3-4b-q6"
+      #- "qwen3-4b-q6-voice"
       #- "qwen3-4b-q8"
-      - kokoro-tts
-      - kokoro-tts-rocm
-      - whisper
+      #- kokoro-tts
+      #- kokoro-tts-rocm
+      #- whisper
 
 hooks:
   on_startup:
@@ -416,8 +250,8 @@ hooks:
 #      - "bge-rerank"
 #      - "granite-docling"
 #      - "qwen-vision"
-      - "qwen3-4b-q6"
-      - "qwen3-4b-q6-voice"
+      #- "qwen3-4b-q6"
+      #- "qwen3-4b-q6-voice"
       #- "qwen3-4b-q8"
-      - kokoro-tts
-      - whisper
+      #- kokoro-tts
+      #- whisper
