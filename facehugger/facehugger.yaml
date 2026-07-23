@@ -96,3 +96,7 @@ models:
     include:
       - UD-Q6_K_XL/*
       - UD-Q8_K_XL/*
+  - repo: unsloth/diffusiongemma-26B-A4B-it-GGUF
+    include:
+      - diffusiongemma-26B-A4B-it-Q5_K_M.gguf
+      - diffusiongemma-26B-A4B-it-Q8_0.gguf
