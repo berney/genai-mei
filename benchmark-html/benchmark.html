@@ -2009,13 +2009,23 @@ if (typeof Plotly === 'undefined') {
   function exportPNG() {
     const plotDiv = document.querySelector('#chartContainer .plotly-chart');
     if (!plotDiv || typeof Plotly === 'undefined') return;
-    Plotly.toImage(plotDiv, 'png', { width: 1200, height: 600, filename: 'benchmark' });
+    Plotly.toImage(plotDiv, 'png', { width: 1200, height: 600 }).then(dataUrl => {
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'benchmark.png';
+      a.click();
+    });
   }
 
   function exportSVG() {
     const plotDiv = document.querySelector('#chartContainer .plotly-chart');
     if (!plotDiv || typeof Plotly === 'undefined') return;
-    Plotly.toImage(plotDiv, 'svg', { width: 1200, height: 600, filename: 'benchmark' });
+    Plotly.toImage(plotDiv, 'svg', { width: 1200, height: 600 }).then(dataUrl => {
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'benchmark.svg';
+      a.click();
+    });
   }
 
   function exportTSV() {
