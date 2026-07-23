@@ -24,50 +24,9 @@ x-engine: &x-engine
     ROCBLAS_LAYER: 4
     # Jesse: in ROCm containers to prevent DMA issues
     HSA_ENABLE_SDMA: 0
-    LLAMA_ARG_MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
   volumes:
     #- ./models:/models:Z
     - ~/.cache/huggingface:/huggingface:ro
-
-x-engine-vulkan-radv: &x-engine-vulkan-radv
-  <<: *x-engine
-  image: berne/amd-strix-halo-toolboxes:vulkan-radv
-  build:
-    context: amd-strix-halo-toolboxes
-    args:
-      TAG: vulkan-radv
-
-x-engine-vulkan-amdvlk: &x-engine-vulkan-amdvlk
-  <<: *x-engine
-  image: berne/amd-strix-halo-toolboxes:vulkan-amdvlk
-  build:
-    context: amd-strix-halo-toolboxes
-    args:
-      TAG: vulkan-amdvlk
-
-x-engine-rocm-6.4.4: &x-engine-rocm-6.4.4
-  <<: *x-engine
-  image: berne/amd-strix-halo-toolboxes:rocm-6.4.4
-  build:
-    context: amd-strix-halo-toolboxes
-    args:
-      TAG: rocm-6.4.4
-
-x-engine-rocm-7.2: &x-engine-rocm-7.2
-  <<: *x-engine
-  image: berne/amd-strix-halo-toolboxes:rocm-7.2
-  build:
-    context: amd-strix-halo-toolboxes
-    args:
-      TAG: rocm-7.2
-
-x-engine-rocm-722: &x-engine-rocm-722
-  <<: *x-engine
-  image: berne/amd-strix-halo-toolboxes:rocm-7.2.2
-  build:
-    context: amd-strix-halo-toolboxes
-    args:
-      TAG: rocm-7.2.2
 
 x-engine-rocm-723: &x-engine-rocm-723
   <<: *x-engine
@@ -77,13 +36,13 @@ x-engine-rocm-723: &x-engine-rocm-723
     args:
       TAG: rocm-7.2.3
 
-x-engine-rocm7-nightlies: &x-engine-rocm7-nightlies
+x-engine-rocm-724: &x-engine-rocm-724
   <<: *x-engine
-  image: berne/amd-strix-halo-toolboxes:rocm7-nightlies
+  image: berne/amd-strix-halo-toolboxes:rocm-7.2.4
   build:
     context: amd-strix-halo-toolboxes
     args:
-      TAG: rocm7-nightlies
+      TAG: rocm-7.2.4
 
 x-model: &x-model
   # FML not all arguments have env var equivalents: warmup, temp, top-p, min-p, typical
@@ -117,46 +76,6 @@ x-model-benchmark: &x-model-benchmark
     -oe md
   #  -o jsonl
 
-x-model-vulkan-radv: &x-model-vulkan-radv
-  <<: [*x-model, *x-engine-vulkan-radv]
-  profiles:
-    - model
-    - vulkan-radv
-  environment: &x-model-vulkan-radv-env
-    <<: [*x-model-env, *x-engine-env]
-
-x-model-vulkan-amdvlk: &x-model-vulkan-amdvlk
-  <<: [*x-model, *x-engine-vulkan-amdvlk]
-  profiles:
-    - model
-    - vulkan-amdvlk
-  environment: &x-model-vulkan-amdvlk-env
-    <<: [*x-model-env, *x-engine-env]
-
-x-model-rocm-6.4.4: &x-model-rocm-6.4.4
-  <<: [*x-model, *x-engine-rocm-6.4.4]
-  profiles:
-    - model
-    - rocm-6.4.4
-  environment: &x-model-rocm-6.4.4-env
-    <<: [*x-model-env, *x-engine-env]
-
-x-model-rocm-7.2: &x-model-rocm-7.2
-  <<: [*x-model, *x-engine-rocm-7.2]
-  profiles:
-    - model
-    - rocm-7.2
-  environment: &x-model-rocm-7.2-env
-    <<: [*x-model-env, *x-engine-env]
-
-x-model-rocm-722: &x-model-rocm-722
-  <<: [*x-model, *x-engine-rocm-722]
-  profiles:
-    - model
-    - rocm-7.2.2
-  environment: &x-model-rocm-722-env
-    <<: [*x-model-env, *x-engine-env]
-
 x-model-rocm-723: &x-model-rocm-723
   <<: [*x-model, *x-engine-rocm-723]
   profiles:
@@ -165,52 +84,12 @@ x-model-rocm-723: &x-model-rocm-723
   environment: &x-model-rocm-723-env
     <<: [*x-model-env, *x-engine-env]
 
-x-model-rocm7-nightlies: &x-model-rocm7-nightlies
-  <<: [*x-model, *x-engine-rocm7-nightlies]
+x-model-rocm-724: &x-model-rocm-724
+  <<: [*x-model, *x-engine-rocm-724]
   profiles:
     - model
-    - rocm7-nightlies
-  environment: &x-model-rocm7-nightlies-env
-    <<: [*x-model-env, *x-engine-env]
-
-x-model-benchmark-vulkan-radv: &x-model-benchmark-vulkan-radv
-  <<: [*x-model-benchmark, *x-engine-vulkan-radv]
-  profiles:
-    - benchmark
-    - vulkan-radv
-  environment: &x-model-benchmark-vulkan-radv-env
-    <<: [*x-model-env, *x-engine-env]
-
-x-model-benchmark-vulkan-amdvlk: &x-model-benchmark-vulkan-amdvlk
-  <<: [*x-model-benchmark, *x-engine-vulkan-amdvlk]
-  profiles:
-    - benchmark
-    - vulkan-radv
-  environment: &x-model-benchmark-vulkan-amdvlk-env
-    <<: [*x-model-env, *x-engine-env]
-
-x-model-benchmark-rocm-6.4.4: &x-model-benchmark-rocm-6.4.4
-  <<: [*x-model-benchmark, *x-engine-rocm-6.4.4]
-  profiles:
-    - benchmark
-    - rocm-6.4.4
-  environment: &x-model-benchmark-rocm-6.4.4-env
-    <<: [*x-model-env, *x-engine-env]
-
-x-model-benchmark-rocm-7.2: &x-model-benchmark-rocm-7.2
-  <<: [*x-model-benchmark, *x-engine-rocm-7.2]
-  profiles:
-    - benchmark
-    - rocm-7.2
-  environment: &x-model-benchmark-rocm-7.2-env
-    <<: [*x-model-env, *x-engine-env]
-
-x-model-benchmark-rocm-722: &x-model-benchmark-rocm-722
-  <<: [*x-model-benchmark, *x-engine-rocm-722]
-  profiles:
-    - benchmark
-    - rocm-7.2.2
-  environment: &x-model-benchmark-rocm-722-env
+    - rocm-7.2.4
+  environment: &x-model-rocm-724-env
     <<: [*x-model-env, *x-engine-env]
 
 x-model-benchmark-rocm-723: &x-model-benchmark-rocm-723
@@ -221,12 +100,12 @@ x-model-benchmark-rocm-723: &x-model-benchmark-rocm-723
   environment: &x-model-benchmark-rocm-723-env
     <<: [*x-model-env, *x-engine-env]
 
-x-model-benchmark-rocm7-nightlies: &x-model-benchmark-rocm7-nightlies
-  <<: [*x-model-benchmark, *x-engine-rocm7-nightlies]
+x-model-benchmark-rocm-724: &x-model-benchmark-rocm-724
+  <<: [*x-model-benchmark, *x-engine-rocm-724]
   profiles:
     - benchmark
-    - rocm7-nightlies
-  environment: &x-model-benchmark-rocm7-nightlies-env
+    - rocm-7.2.4
+  environment: &x-model-benchmark-rocm-724-env
     <<: [*x-model-env, *x-engine-env]
 
 
@@ -278,10 +157,8 @@ services:
     profiles:
       # implicit default
       - ""
-    # vulkan for AMD Strix Halo
     build: llama-swap
-    #image: ghcr.io/mostlygeek/llama-swap:vulkan-non-root
-    image: berne/llama-swap:vulkan-non-root
+    image: berne/llama-swap:rcom-non-root
     #user: "1000:1000"
     userns_mode: keep-id
     # This is `ubuntu` user rather than `app` user.
@@ -296,7 +173,6 @@ services:
     #command: >-
     #  -config /config/config.yaml
     #  -watch-config
-    #image: ghcr.io/mostlygeek/llama-swap:vulkan-non-root
     devices:
       # Direct Rendering Infrastructure (dri) - exposes renderer nodes (renderD128) and compute shaders, used by Vulkan/Mesa
       - /dev/dri:/dev/dri
@@ -381,7 +257,7 @@ services:
   whisper.cpp:
     profiles:
       - whisper
-    image: ghcr.io/ggml-org/whisper.cpp:main-vulkan
+    image: ghcr.io/ggml-org/whisper.cpp:main-rocm
     userns_mode: keep-id
     # Command Line
     # - entrypoint is `bash -c` so need the quotes
@@ -424,7 +300,7 @@ services:
   whisper-bench:
     profiles:
       - whisper-bench
-    image: ghcr.io/ggml-org/whisper.cpp:main-vulkan
+    image: ghcr.io/ggml-org/whisper.cpp:main-rocm
     userns_mode: keep-id
     # entrypoint is `bash -c` so need the quotes
     # need to listen on 0.0.0.0 so host can connect to docker published port
@@ -457,7 +333,7 @@ services:
   whisper-download:
     profiles:
       - whisper-download
-    image: ghcr.io/ggml-org/whisper.cpp:main-vulkan
+    image: ghcr.io/ggml-org/whisper.cpp:main-rocm
     userns_mode: keep-id
     # entrypoint is `bash -c` so need the quotes
     volumes:
@@ -499,310 +375,17 @@ services:
       - ./facehugger/facehugger.yaml:/facehugger.yaml
 
 
-  # ==============================================================================================================================================================
-  # Mistral Vibe
-  # ==============================================================================================================================================================
-  mistral-vibe:
-    profiles:
-      - mistral-vibe
-    build: mistral-vibe
-    image: berne/mistral-vibe
-
-
-  # ==============================================================================================================================================================
+  # ====================================================================================================================================
   # Models
-  # ==============================================================================================================================================================
-
-  # large uncensored model
-  # BF16 Quant
-  # bdawg: Would Q8_0 be better? The GPU has bf16: 0
-  #        Ah this depends on the inference runtime (engine) - amdvlk should have bf16: 1
-  heretic-gpt-oss-120b: &heretic-gpt-oss-120b
-    <<: *x-model-vulkan-radv
-    #profiles:
-    #  - model-heretic-gpt-oss-120b
-    environment: &heretic-gpt-oss-120b-env
-      <<: *x-model-vulkan-radv-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-bf16/kldzj_gpt-oss-120b-heretic-bf16-00001-of-00002.gguf
-    ports:
-      - 8120:8080
-
-  heretic-gpt-oss-120b-vulkan-radv-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-vulkan-amdvlk:
-    # Merge precedence is (preferred) parent, first, to last.
-    # Once a field is set any dupes are ignored.
-    <<: [*x-model-vulkan-amdvlk, *heretic-gpt-oss-120b]
-    # x-model-vulkan-amdvlk sets environ
-    # So we need to override it here
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-vulkan-amdvlk-benchmark:
-    <<: *x-model-benchmark-vulkan-amdvlk
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-rocm-6.4.4:
-    # Merge precedence is (preferred) parent, first, to last.
-    # Once a field is set any dupes are ignored.
-    <<: [*x-model-rocm-6.4.4, *heretic-gpt-oss-120b]
-    # x-model-base-vulkan-amdvlk inherits model-base that sets environ
-    # So we need to override it here
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-rocm-6.4.4-benchmark:
-    <<: *x-model-benchmark-rocm-6.4.4
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-rocm-7.2:
-    # Merge precedence is (preferred) parent, first, to last.
-    # Once a field is set any dupes are ignored.
-    <<: [*x-model-rocm-7.2, *heretic-gpt-oss-120b]
-    # x-model-base-vulkan-amdvlk inherits model-base that sets environ
-    # So we need to override it here
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-rocm-7.2-benchmark:
-    <<: *x-model-benchmark-rocm-7.2
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-rocm-722:
-    # Merge precedence is (preferred) parent, first, to last.
-    # Once a field is set any dupes are ignored.
-    <<: [*x-model-rocm-722, *heretic-gpt-oss-120b]
-    # x-model-base-vulkan-amdvlk inherits model-base that sets environ
-    # So we need to override it here
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-rocm-722-benchmark:
-    <<: *x-model-benchmark-rocm-722
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-rocm-723:
-    # Merge precedence is (preferred) parent, first, to last.
-    # Once a field is set any dupes are ignored.
-    <<: [*x-model-rocm-723, *heretic-gpt-oss-120b]
-    # x-model-base-vulkan-amdvlk inherits model-base that sets environ
-    # So we need to override it here
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-rocm-723-benchmark:
-    <<: *x-model-benchmark-rocm-723
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-rocm7-nightlies:
-    # Merge precedence is (preferred) parent, first, to last.
-    # Once a field is set any dupes are ignored.
-    <<: [*x-model-rocm7-nightlies, *heretic-gpt-oss-120b]
-    # x-model-base-vulkan-amdvlk inherits model-base that sets environ
-    # So we need to override it here
-    environment:
-      <<: *heretic-gpt-oss-120b-env
-
-  heretic-gpt-oss-120b-rocm7-nightlies-benchmark:
-    <<: *x-model-benchmark-rocm7-nightlies
-    environment:
-      <<: *heretic-gpt-oss-120b-env
+  # ====================================================================================================================================
 
 
-  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
-  # Quant Q8_0
-  heretic-gpt-oss-120b-q8: &heretic-gpt-oss-120b-q8
-    <<: *x-model-vulkan-radv
-    #profiles:
-    #  - model-heretic-gpt-oss-120b-q8
-    environment: &heretic-gpt-oss-120b-q8-env
-      <<: *x-model-vulkan-radv-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-Q8_0/kldzj_gpt-oss-120b-heretic-Q8_0-00001-of-00002.gguf
-      # default is 8080
-    ports:
-      - 8121:8080
 
-  heretic-gpt-oss-120b-q8-vulkan-radv-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    environment:
-      <<: *heretic-gpt-oss-120b-q8-env
-
-  heretic-gpt-oss-120b-q8-vulkan-amdvlk:
-    <<: [*x-model-vulkan-amdvlk, *heretic-gpt-oss-120b-q8]
-    environment:
-      <<: *heretic-gpt-oss-120b-q8-env
-
-  heretic-gpt-oss-120b-q8-vulkan-amdvlk-benchmark:
-    <<: *x-model-benchmark-vulkan-amdvlk
-    environment:
-      <<: *heretic-gpt-oss-120b-q8-env
-
-  heretic-gpt-oss-120b-q8-rocm-6.4.4:
-    <<: [*x-model-rocm-6.4.4, *heretic-gpt-oss-120b-q8]
-    environment:
-      <<: *heretic-gpt-oss-120b-q8-env
-
-  heretic-gpt-oss-120b-q8-rocm-6.4.4-benchmark:
-    <<: *x-model-benchmark-rocm-6.4.4
-    environment:
-      <<: *heretic-gpt-oss-120b-q8-env
-
-  heretic-gpt-oss-120b-q8-rocm-7.2:
-    <<: [*x-model-rocm-7.2, *heretic-gpt-oss-120b-q8]
-    environment:
-      <<: *heretic-gpt-oss-120b-q8-env
-
-  heretic-gpt-oss-120b-q8-rocm-7.2-benchmark:
-    <<: *x-model-benchmark-rocm-7.2
-    environment:
-      <<: *heretic-gpt-oss-120b-q8-env
-
-  heretic-gpt-oss-120b-q8-rocm7-nightlies:
-    <<: [*x-model-rocm7-nightlies, *heretic-gpt-oss-120b-q8]
-    environment:
-      <<: *heretic-gpt-oss-120b-q8-env
-
-  heretic-gpt-oss-120b-q8-rocm7-nightlies-benchmark:
-    <<: *x-model-benchmark-rocm7-nightlies
-    environment:
-      <<: *heretic-gpt-oss-120b-q8-env
-
-  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
-  qwen3-coder-30b: &qwen3-coder-30b
-    <<: *x-model-vulkan-radv
-    environment: &qwen3-coder-30b-env
-      <<: *x-model-vulkan-radv-env
-      #LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-30B-A3B-Instruct-GGUF/snapshots/7ce945e58ed3f09f9cf9c33a2122d86ac979b457/Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-30B-A3B-Instruct-GGUF/snapshots/b17cb02dd882d5b6ab62fc777ad2995f19668350/Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf
-    ports:
-      - 8130:8080
-
-  qwen3-coder-30b-vulkan-radv-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    environment:
-      <<: *qwen3-coder-30b-env
-
-  qwen3-coder-30b-vulkan-amdvlk:
-    <<: [*x-model-vulkan-amdvlk, *qwen3-coder-30b]
-    environment:
-      <<: *qwen3-coder-30b-env
-
-  qwen3-coder-30b-vulkan-amdvlk-benchmark:
-    <<: *x-model-benchmark-vulkan-amdvlk
-    environment:
-      <<: *qwen3-coder-30b-env
-
-  qwen3-coder-30b-rocm-6.4.4:
-    <<: [*x-model-rocm-6.4.4, *qwen3-coder-30b]
-    environment:
-      <<: *qwen3-coder-30b-env
-
-  qwen3-coder-30b-rocm-6.4.4-benchmark:
-    <<: *x-model-benchmark-rocm-6.4.4
-    environment:
-      <<: *qwen3-coder-30b-env
-
-  qwen3-coder-30b-rocm-7.2:
-    <<: [*x-model-rocm-7.2, *qwen3-coder-30b]
-    environment:
-      <<: *qwen3-coder-30b-env
-
-  qwen3-coder-30b-rocm-7.2-benchmark:
-    <<: *x-model-benchmark-rocm-7.2
-    environment:
-      <<: *qwen3-coder-30b-env
-
-  qwen3-coder-30b-rocm7-nightlies:
-    <<: [*x-model-rocm7-nightlies, *qwen3-coder-30b]
-    environment:
-      <<: *qwen3-coder-30b-env
-
-  qwen3-coder-30b-rocm7-nightlies-benchmark:
-    <<: *x-model-benchmark-rocm7-nightlies
-    environment:
-      <<: *qwen3-coder-30b-env
-
-
-  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
-  qwen3-coder-next: &qwen3-coder-next
-    <<: *x-model-vulkan-radv
-    environment: &qwen3-coder-next-env
-      <<: *x-model-vulkan-radv-env
-      #LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-Next-GGUF/snapshots/96ab45bf06d904ee251044b0679df08f668677d2/UD-Q8_K_XL/Qwen3-Coder-Next-UD-Q8_K_XL-00001-of-00003.gguf
-      #LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-Next-GGUF/snapshots/c34da54d209ead4748a1e2f4b5a90edeb6e8bbd2/UD-Q8_K_XL/Qwen3-Coder-Next-UD-Q8_K_XL-00001-of-00003.gguf
-      #LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-Next-GGUF/snapshots/881901f86566eb2e7d7e4e6571f3133765b45f76/UD-Q8_K_XL/Qwen3-Coder-Next-UD-Q8_K_XL-00001-of-00003.gguf
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-Coder-Next-GGUF/snapshots/ce09c67b53bc8739eef83fe67b2f5d293c270632/UD-Q8_K_XL/Qwen3-Coder-Next-UD-Q8_K_XL-00001-of-00003.gguf
-      LLAMA_ARG_CONT_BATCHING: off
-    ports:
-      - 8140:8080
-    command: >-
-      llama-server
-      --no-warmup
-      --temp 1.0
-      --min-p 0.01
-    #  --top-p 0.95
-    #  --repeat-penalty 1.0
-    #  --typical 0.95
-
-  qwen3-coder-next-vulkan-radv-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    environment:
-      <<: *qwen3-coder-next-env
-
-  qwen3-coder-next-vulkan-amdvlk:
-    <<: [*x-model-vulkan-amdvlk, *qwen3-coder-next]
-    environment:
-      <<: *qwen3-coder-next-env
-
-  qwen3-coder-next-vulkan-amdvlk-benchmark:
-    <<: *x-model-benchmark-vulkan-amdvlk
-    environment:
-      <<: *qwen3-coder-next-env
-
-  qwen3-coder-next-rocm-6.4.4:
-    <<: [*x-model-rocm-6.4.4, *qwen3-coder-next]
-    environment:
-      <<: *qwen3-coder-next-env
-
-  qwen3-coder-next-rocm-6.4.4-benchmark:
-    <<: *x-model-benchmark-rocm-6.4.4
-    environment:
-      <<: *qwen3-coder-next-env
-
-  qwen3-coder-next-rocm-7.2:
-    <<: [*x-model-rocm-7.2, *qwen3-coder-next]
-    environment:
-      <<: *qwen3-coder-next-env
-
-  qwen3-coder-next-rocm-7.2-benchmark:
-    <<: *x-model-benchmark-rocm-7.2
-    environment:
-      <<: *qwen3-coder-next-env
-
-  qwen3-coder-next-rocm7-nightlies:
-    <<: [*x-model-rocm7-nightlies, *qwen3-coder-next]
-    environment:
-      <<: *qwen3-coder-next-env
-
-  qwen3-coder-next-rocm7-nightlies-benchmark:
-    <<: *x-model-benchmark-rocm7-nightlies
-    environment:
-      <<: *qwen3-coder-next-env
-
-
-  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
+  # --------------------------------------------------------------------------------------------------------------------------------
   qwen36-35B-A3B: &qwen36-35B-A3B
-    <<: *x-model-rocm-723
+    <<: *x-model-rocm-724
     environment: &qwen36-35B-A3B-env
-      <<: *x-model-rocm-723-env
+      <<: *x-model-rocm-724-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-GGUF/snapshots/a483e9e6cbd595906af30beda3187c2663a1118c/Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -820,9 +403,9 @@ services:
     #  --typical 0.95 (default is 1.0)
 
   qwen36-35B-A3B-MTP: &qwen36-35B-A3B-MTP
-    <<: *x-model-rocm-723
+    <<: *x-model-rocm-724
     environment: &qwen36-35B-A3B-MTP-env
-      <<: *x-model-rocm-723-env
+      <<: *x-model-rocm-724-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-MTP-GGUF/snapshots/b8efbbece76dc9103a6a45b7ed95b26c3932fc5f/Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -847,153 +430,34 @@ services:
       --temp 0.6
     #  --presence-penalty 0.00 (default)
 
-  qwen36-35B-A3B-vulkan-radv:
-    <<: [*x-model-vulkan-radv, *qwen36-35B-A3B]
-    environment:
-      <<: *qwen36-35B-A3B-env
-
-  qwen36-35B-A3B-vulkan-radv-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    environment:
-      <<: *qwen36-35B-A3B-env
-
-  qwen36-35B-A3B-vulkan-amdvlk:
-    <<: [*x-model-vulkan-amdvlk, *qwen36-35B-A3B]
-    environment:
-      <<: *qwen36-35B-A3B-env
-
-  qwen36-35B-A3B-vulkan-amdvlk-benchmark:
-    <<: *x-model-benchmark-vulkan-amdvlk
-    environment:
-      <<: *qwen36-35B-A3B-env
-
-  qwen36-35B-A3B-rocm-6.4.4:
-    <<: [*x-model-rocm-6.4.4, *qwen36-35B-A3B]
-    environment:
-      <<: *qwen36-35B-A3B-env
-
-  qwen36-35B-A3B-rocm-6.4.4-benchmark:
-    <<: *x-model-benchmark-rocm-6.4.4
-    environment:
-      <<: *qwen36-35B-A3B-env
-
-  qwen36-35B-A3B-rocm-7.2:
-    <<: [*x-model-rocm-7.2, *qwen36-35B-A3B]
-    environment:
-      <<: *qwen36-35B-A3B-env
-
-  qwen36-35B-A3B-rocm-7.2-benchmark:
-    <<: *x-model-benchmark-rocm-7.2
-    environment:
-      <<: *qwen36-35B-A3B-env
-
-  qwen36-35B-A3B-rocm-722:
-    <<: [*x-model-rocm-722, *qwen36-35B-A3B]
-    environment:
-      <<: *qwen36-35B-A3B-env
-
-  qwen36-35B-A3B-rocm-722-benchmark:
-    <<: *x-model-benchmark-rocm-722
-    environment:
-      <<: *qwen36-35B-A3B-env
-
-  qwen36-35B-A3B-rocm-723:
-    <<: [*x-model-rocm-723, *qwen36-35B-A3B]
-    environment:
-      <<: *qwen36-35B-A3B-env
-
   qwen36-35B-A3B-rocm-723-benchmark:
     <<: *x-model-benchmark-rocm-723
     environment:
       <<: *qwen36-35B-A3B-env
 
-  qwen36-35B-A3B-rocm7-nightlies:
-    <<: [*x-model-rocm7-nightlies, *qwen36-35B-A3B]
+  qwen36-35B-A3B-rocm-724-benchmark:
+    <<: *x-model-benchmark-rocm-724
     environment:
       <<: *qwen36-35B-A3B-env
 
-  qwen36-35B-A3B-rocm7-nightlies-benchmark:
-    <<: *x-model-benchmark-rocm7-nightlies
-    environment:
-      <<: *qwen36-35B-A3B-env
 
   # Qwen3.6 35B A3B MTP
-  qwen36-35B-A3B-MTP-vulkan-radv:
-    <<: [*x-model-vulkan-radv, *qwen36-35B-A3B-MTP]
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
-  qwen36-35B-A3B-MTP-vulkan-radv-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
-  qwen36-35B-A3B-MTP-vulkan-amdvlk:
-    <<: [*x-model-vulkan-amdvlk, *qwen36-35B-A3B-MTP]
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
-  qwen36-35B-A3B-MTP-vulkan-amdvlk-benchmark:
-    <<: *x-model-benchmark-vulkan-amdvlk
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
-  qwen36-35B-A3B-MTP-rocm-6.4.4:
-    <<: [*x-model-rocm-6.4.4, *qwen36-35B-A3B-MTP]
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
-  qwen36-35B-A3B-MTP-rocm-6.4.4-benchmark:
-    <<: *x-model-benchmark-rocm-6.4.4
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
-  qwen36-35B-A3B-MTP-rocm-7.2:
-    <<: [*x-model-rocm-7.2, *qwen36-35B-A3B-MTP]
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
-  qwen36-35B-A3B-MTP-rocm-7.2-benchmark:
-    <<: *x-model-benchmark-rocm-7.2
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
-  qwen36-35B-A3B-MTP-rocm-722:
-    <<: [*x-model-rocm-722, *qwen36-35B-A3B-MTP]
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
-  qwen36-35B-A3B-MTP-rocm-722-benchmark:
-    <<: *x-model-benchmark-rocm-722
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
-  qwen36-35B-A3B-MTP-rocm-723:
-    <<: [*x-model-rocm-723, *qwen36-35B-A3B-MTP]
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
   qwen36-35B-A3B-MTP-rocm-723-benchmark:
     <<: *x-model-benchmark-rocm-723
     environment:
       <<: *qwen36-35B-A3B-MTP-env
 
-  qwen36-35B-A3B-MTP-rocm7-nightlies:
-    <<: [*x-model-rocm7-nightlies, *qwen36-35B-A3B-MTP]
-    environment:
-      <<: *qwen36-35B-A3B-MTP-env
-
-  qwen36-35B-A3B-MTP-rocm7-nightlies-benchmark:
-    <<: *x-model-benchmark-rocm7-nightlies
+  qwen36-35B-A3B-MTP-rocm-724-benchmark:
+    <<: *x-model-benchmark-rocm-724
     environment:
       <<: *qwen36-35B-A3B-MTP-env
 
 
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   qwen36-27B: &qwen36-27B
-    <<: *x-model-rocm-723
+    <<: *x-model-rocm-724
     environment: &qwen36-27B-env
-      <<: *x-model-rocm-723-env
+      <<: *x-model-rocm-724-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-27B-GGUF/snapshots/82d411acf4a06cfb8d9b073a5211bf410bfc29bf/Qwen3.6-27B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -1008,9 +472,9 @@ services:
       --mmproj /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-GGUF/snapshots/82d411acf4a06cfb8d9b073a5211bf410bfc29bf/mmproj-BF16.gguf
 
   qwen36-27B-MTP: &qwen36-27B-MTP
-    <<: *x-model-rocm-723
+    <<: *x-model-rocm-724
     environment: &qwen36-27B-MTP-env
-      <<: *x-model-rocm-723-env
+      <<: *x-model-rocm-724-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-27B-MTP-GGUF/snapshots/0da008d9b980b76520a952bb3aa4abbaa0955647/Qwen3.6-27B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -1027,372 +491,62 @@ services:
     # --spec-draft-n-max 3
     # # (default is 3)
 
-  qwen36-27B-vulkan-radv:
-    <<: [*x-model-vulkan-radv, *qwen36-27B]
-    environment:
-      <<: *qwen36-27B-env
-
-  qwen36-27B-vulkan-radv-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    environment:
-      <<: *qwen36-27B-env
-
-  qwen36-27B-vulkan-amdvlk:
-    <<: [*x-model-vulkan-amdvlk, *qwen36-27B]
-    environment:
-      <<: *qwen36-27B-env
-
-  qwen36-27B-vulkan-amdvlk-benchmark:
-    <<: *x-model-benchmark-vulkan-amdvlk
-    environment:
-      <<: *qwen36-27B-env
-
-  qwen36-27B-rocm-6.4.4:
-    <<: [*x-model-rocm-6.4.4, *qwen36-27B]
-    environment:
-      <<: *qwen36-27B-env
-
-  qwen36-27B-rocm-6.4.4-benchmark:
-    <<: *x-model-benchmark-rocm-6.4.4
-    environment:
-      <<: *qwen36-27B-env
-
-  qwen36-27B-rocm-7.2:
-    <<: [*x-model-rocm-7.2, *qwen36-27B]
-    environment:
-      <<: *qwen36-27B-env
-
-  qwen36-27B-rocm-7.2-benchmark:
-    <<: *x-model-benchmark-rocm-7.2
-    environment:
-      <<: *qwen36-27B-env
-
-  qwen36-27B-rocm-722:
-    <<: [*x-model-rocm-722, *qwen36-27B]
-    environment:
-      <<: *qwen36-27B-env
-
-  qwen36-27B-rocm-722-benchmark:
-    <<: *x-model-benchmark-rocm-722
-    environment:
-      <<: *qwen36-27B-env
-
-  qwen36-27B-rocm-723:
-    <<: [*x-model-rocm-723, *qwen36-27B]
-    environment:
-      <<: *qwen36-27B-env
-
   qwen36-27B-rocm-723-benchmark:
     <<: *x-model-benchmark-rocm-723
     environment:
       <<: *qwen36-27B-env
 
-  qwen36-27B-rocm7-nightlies:
-    <<: [*x-model-rocm7-nightlies, *qwen36-27B]
+  qwen36-27B-rocm-724-benchmark:
+    <<: *x-model-benchmark-rocm-724
     environment:
       <<: *qwen36-27B-env
 
-  qwen36-27B-rocm7-nightlies-benchmark:
-    <<: *x-model-benchmark-rocm7-nightlies
-    environment:
-      <<: *qwen36-27B-env
 
   # Qwen3.6 27B MTP
-  qwen36-27B-MTP-vulkan-radv:
-    <<: [*x-model-vulkan-radv, *qwen36-27B-MTP]
-    environment:
-      <<: *qwen36-27B-MTP-env
-
-  qwen36-27B-MTP-vulkan-radv-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    environment:
-      <<: *qwen36-27B-MTP-env
-
-  qwen36-27B-MTP-vulkan-amdvlk:
-    <<: [*x-model-vulkan-amdvlk, *qwen36-27B-MTP]
-    environment:
-      <<: *qwen36-27B-MTP-env
-
-  qwen36-27B-MTP-vulkan-amdvlk-benchmark:
-    <<: *x-model-benchmark-vulkan-amdvlk
-    environment:
-      <<: *qwen36-27B-MTP-env
-
-  qwen36-27B-MTP-rocm-6.4.4:
-    <<: [*x-model-rocm-6.4.4, *qwen36-27B-MTP]
-    environment:
-      <<: *qwen36-27B-MTP-env
-
-  qwen36-27B-MTP-rocm-6.4.4-benchmark:
-    <<: *x-model-benchmark-rocm-6.4.4
-    environment:
-      <<: *qwen36-27B-MTP-env
-
-  qwen36-27B-MTP-rocm-7.2:
-    <<: [*x-model-rocm-7.2, *qwen36-27B-MTP]
-    environment:
-      <<: *qwen36-27B-MTP-env
-
-  qwen36-27B-MTP-rocm-7.2-benchmark:
-    <<: *x-model-benchmark-rocm-7.2
-    environment:
-      <<: *qwen36-27B-MTP-env
-
-  qwen36-27B-MTP-rocm-722:
-    <<: [*x-model-rocm-722, *qwen36-27B-MTP]
-    environment:
-      <<: *qwen36-27B-MTP-env
-
-  qwen36-27B-MTP-rocm-722-benchmark:
-    <<: *x-model-benchmark-rocm-722
-    environment:
-      <<: *qwen36-27B-MTP-env
-
-  qwen36-27B-MTP-rocm-723:
-    <<: [*x-model-rocm-723, *qwen36-27B-MTP]
-    environment:
-      <<: *qwen36-27B-MTP-env
-
   qwen36-27B-MTP-rocm-723-benchmark:
     <<: *x-model-benchmark-rocm-723
     environment:
       <<: *qwen36-27B-MTP-env
 
-  qwen36-27B-MTP-rocm7-nightlies:
-    <<: [*x-model-rocm7-nightlies, *qwen36-27B-MTP]
+  qwen36-27B-MTP-rocm-724-benchmark:
+    <<: *x-model-benchmark-rocm-724
     environment:
       <<: *qwen36-27B-MTP-env
 
-  qwen36-27B-MTP-rocm7-nightlies-benchmark:
-    <<: *x-model-benchmark-rocm7-nightlies
-    environment:
-      <<: *qwen36-27B-MTP-env
 
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   qwen3-4b-128k-q6:
-    <<: *x-model-vulkan-radv
+    <<: *x-model-rocm-724
     environment: &qwen3-4b-128k-q6-env
-      <<: *x-model-vulkan-radv-env
+      <<: *x-model-rocm-724-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q6_K_XL.gguf
     ports:
       - 8150:8080
 
   qwen3-4b-128k-q6-voice:
-    <<: *x-model-vulkan-radv
+    <<: *x-model-rocm-724
     environment: &qwen3-4b-128k-q6-env
-      <<: *x-model-vulkan-radv-env
+      <<: *x-model-rocm-724-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q6_K_XL.gguf
       # Direct response mode, non-thinking-mode, give immediate response, better UX for voice chat
       LLAMA_ARG_REASONING: off
     ports:
       - 8155:8080
 
-  qwen3-4b-128k-q6-cli:
-    <<: *x-model-vulkan-radv
-    command: >-
-      llama-cli
-      --help
-    environment: &qwen3-4b-128k-q6-env
-      <<: *x-model-vulkan-radv-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q6_K_XL.gguf
-    ports:
-      - 8150:8080
-
-  qwen3-4b-128k-q6-vulkan-radv-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
+  qwen3-4b-128k-q6-rocm-723-benchmark:
+    <<: *x-model-benchmark-rocm-723
     environment:
       <<: *qwen3-4b-128k-q6-env
 
-  qwen3-4b-128k-q6-vulkan-amdvlk-benchmark:
-    <<: *x-model-benchmark-vulkan-amdvlk
+  qwen3-4b-128k-q6-rocm-724-benchmark:
+    <<: *x-model-benchmark-rocm-724
     environment:
       <<: *qwen3-4b-128k-q6-env
 
-  qwen3-4b-128k-q6-rocm-6.4.4-benchmark:
-    <<: *x-model-benchmark-rocm-6.4.4
-    environment:
-      <<: *qwen3-4b-128k-q6-env
-
-  qwen3-4b-128k-q6-rocm-7.2-benchmark:
-    <<: *x-model-benchmark-rocm-7.2
-    environment:
-      <<: *qwen3-4b-128k-q6-env
-
-  qwen3-4b-128k-q6-rocm7-nightlies-benchmark:
-    <<: *x-model-benchmark-rocm7-nightlies
-    environment:
-      <<: *qwen3-4b-128k-q6-env
-
-  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
-  qwen3-4b-128k-q8:
-    <<: *x-model-vulkan-radv
-    environment: &qwen3-4b-128k-q8-env
-      <<: *x-model-vulkan-radv-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q8_K_XL.gguf
-    ports:
-      - 8160:8080
-
-  qwen3-4b-128k-q8-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    environment:
-      <<: *qwen3-4b-128k-q8-env
-
-  # --------------------------------------------------------------------------------------------------------------------------------------
-  # primary coding model
-  glm-4.7-flash:
-    <<: *x-model-vulkan-radv
-    command: >-
-      llama-server
-      --no-warmup
-      --temp 0.3
-      --top-p 1.0
-      --min-p 0.01
-      --typical 0.95
-    #  --repeat-penalty 1.0
-    environment: &glm-47-flash-env
-      <<: *x-model-vulkan-radv-env
-      #LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--GLM-4.7-Flash-GGUF/snapshots/66205ea11ef638d83850389bd921e6c199f7504e/GLM-4.7-Flash-UD-Q8_K_XL.gguf
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--GLM-4.7-Flash-GGUF/snapshots/0d32489ecb9db6d2a4fc93bd27ef01519f95474d/GLM-4.7-Flash-UD-Q8_K_XL.gguf
-      LLAMA_ARG_CTX_SIZE: 202752
-    ports:
-      - 8170:8080
-
-  glm-4.7-flash-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    # No env vars for several options
-    # https://unsloth.ai/docs/models/glm-4.7-flash
-    environment:
-      <<: *glm-47-flash-env
 
 
-  # --------------------------------------------------------------------------------------------------------------------------------------
-  # NVIDIA Nemotron 3 Super: James is interested in it
-  nvidia-nemotron-3-super-q6:
-    <<: *x-model-vulkan-radv
-    # From their quick start:
-    # Use temperature=1.0 and top_p=0.95 across all tasks and serving backends — reasoning, tool calling, and general chat alike.
-    #
-    # bdawg: added ctk q8_0 to quantise the context to save space
-    command: >-
-      llama-server
-      --no-warmup
-      --temp 1.0
-      --top-p 0.95
-      --min-p 0.01
-      --typical 0.95
-    #  --repeat-penalty 1.0
-    environment: &nvidia-nemotron-3-super-q6-env
-      <<: *x-model-vulkan-radv-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/snapshots/036038fb30334a2d56a146c6f0d4871ab5edccbb/UD-Q6_K_XL/NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q6_K_XL-00001-of-00004.gguf
-      #LLAMA_ARG_CTX_SIZE: 4096
-      #LLAMA_ARG_N_GPU_LAYERS: 70
-    ports:
-      - 8200:8080
+  # ---------------------------------------------------------------------------------------------------------------------------------
 
-  nvidia-nemotron-3-super-q6-vulkan-radv-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    environment:
-      <<: *nvidia-nemotron-3-super-q6-env
-
-  nvidia-nemotron-3-super-q6-vulkan-amdvlk-benchmark:
-    <<: *x-model-benchmark-vulkan-amdvlk
-    environment:
-      <<: *nvidia-nemotron-3-super-q6-env
-
-  nvidia-nemotron-3-super-q6-rocm-6.4.4-benchmark:
-    <<: *x-model-benchmark-rocm-6.4.4
-    environment:
-      <<: *nvidia-nemotron-3-super-q6-env
-
-  nvidia-nemotron-3-super-q6-rocm-7.2-benchmark:
-    <<: *x-model-benchmark-rocm-7.2
-    environment:
-      <<: *nvidia-nemotron-3-super-q6-env
-
-  nvidia-nemotron-3-super-q6-rocm7-nightlies-benchmark:
-    <<: *x-model-benchmark-rocm7-nightlies
-    environment:
-      <<: *nvidia-nemotron-3-super-q6-env
-
-
-  nvidia-nemotron-3-super-q8:
-    <<: *x-model-vulkan-radv
-    # From their quick start:
-    # Use temperature=1.0 and top_p=0.95 across all tasks and serving backends — reasoning, tool calling, and general chat alike.
-    #
-    # bdawg: added ctk q8_0 to quantise the context to save space
-    command: >-
-      llama-server
-      --no-warmup
-      --temp 1.0
-      --top-p 0.95
-      --min-p 0.01
-      --typical 0.95
-      --cache-type-k q8_0
-    #  --repeat-penalty 1.0
-    environment: &nvidia-nemotron-3-super-q8-env
-      <<: *x-model-vulkan-radv-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--NVIDIA-Nemotron-3-Super-120B-A12B-GGUF/snapshots/036038fb30334a2d56a146c6f0d4871ab5edccbb/UD-Q8_K_XL/NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q8_K_XL-00001-of-00004.gguf
-      LLAMA_ARG_CTX_SIZE: 4096
-      LLAMA_ARG_N_GPU_LAYERS: 70
-    ports:
-      - 8210:8080
-
-
-
-
-  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
-  # Multi Modal Model - Omni
-  qwen2.5-omni-7b:
-    <<: *x-model-vulkan-radv
-    environment: &qwen2.5-omni-7b-env
-      <<: *x-model-vulkan-radv-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen2.5-Omni-7B-GGUF/snapshots/f9bbd33a2931371b336c3d48532bb278a478471d/Qwen2.5-Omni-7B-UD-Q8_K_XL.gguf
-      LLAMA_ARG_CTX_SIZE: 65536
-    command: >-
-      llama-server
-      --no-warmup
-      --temp 0.7
-      --top-p 0.9
-      --min-p 0.05
-      --typical 0.95
-      --mmproj /huggingface/hub/models--unsloth--Qwen2.5-Omni-7B-GGUF/snapshots/f9bbd33a2931371b336c3d48532bb278a478471d/mmproj-F16.gguf
-    #  --repeat-penalty 1.0
-    ports:
-      - 8180:8080
-
-  qwen2.5-omni-7b-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    # No env vars for several options
-    # https://unsloth.ai/docs/models/glm-4.7-flash
-    environment:
-      <<: *qwen2.5-omni-7b-env
-
-  glm-4.6v-flash:
-    <<: *x-model-vulkan-radv
-    environment: &glm-4.6v-flash-env
-      <<: *x-model-vulkan-radv-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--GLM-4.6V-Flash-GGUF/snapshots/c78a0727cb5ee489db2f218a212f613943023ee8/GLM-4.6V-Flash-UD-Q8_K_XL.gguf
-      #LLAMA_ARG_CTX_SIZE: 202752
-      LLAMA_ARG_CTX_SIZE: 131072
-    command: >-
-      llama-server
-      --no-warmup
-      --temp 0.7
-      --top-p 0.9
-      --min-p 0.05
-      --typical 0.95
-      --mmproj /huggingface/hub/models--unsloth--GLM-4.6V-Flash-GGUF/snapshots/c78a0727cb5ee489db2f218a212f613943023ee8/mmproj-BF16.gguf
-    #  --repeat-penalty 1.0
-    ports:
-      - 8190:8080
-
-  glm-4.6v-flash-benchmark:
-    <<: *x-model-benchmark-vulkan-radv
-    environment:
-      <<: *glm-4.6v-flash-env
-
-  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   # Kokoro TTS
   kokoro-tts:
     profiles:
