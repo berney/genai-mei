@@ -1,0 +1,16 @@
+time="2026-06-10T20:20:52+10:00" level=warning msg="No services to build"
+ Network genai-mei_default Creating 
+ Network genai-mei_default Created 
+time="2026-06-10T20:20:52+10:00" level=warning msg="No services to build"
+ Container genai-mei-heretic-gpt-oss-120b-q8-vulkan-radv-benchmark-run-e3edd3add410 Creating 
+ Container genai-mei-heretic-gpt-oss-120b-q8-vulkan-radv-benchmark-run-e3edd3add410 Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |           pp512 |      521.93 ± 115.68 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |          pp1024 |        578.94 ± 5.17 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |          pp2048 |       560.80 ± 16.06 |
+| gpt-oss 120B Q8_0              |  59.02 GiB |   116.83 B | Vulkan     | 999 |           tg128 |         52.96 ± 0.43 |
+
+build: b65bb4baa (9276)

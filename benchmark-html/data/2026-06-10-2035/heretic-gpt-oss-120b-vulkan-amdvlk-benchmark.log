@@ -1,0 +1,14 @@
+time="2026-06-10T20:37:04+10:00" level=warning msg="No services to build"
+time="2026-06-10T20:37:04+10:00" level=warning msg="No services to build"
+ Container genai-mei-heretic-gpt-oss-120b-vulkan-amdvlk-benchmark-run-6f1392a170d2 Creating 
+ Container genai-mei-heretic-gpt-oss-120b-vulkan-amdvlk-benchmark-run-6f1392a170d2 Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Radeon 8060S Graphics (AMD open-source driver) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 32768 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           pp512 |       163.79 ± 33.32 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp1024 |        177.15 ± 0.66 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp2048 |        174.33 ± 3.07 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           tg128 |         33.26 ± 0.67 |
+
+build: b65bb4baa (9276)

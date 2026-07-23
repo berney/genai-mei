@@ -1,0 +1,14 @@
+time="2026-06-10T20:22:27+10:00" level=warning msg="No services to build"
+time="2026-06-10T20:22:27+10:00" level=warning msg="No services to build"
+ Container genai-mei-heretic-gpt-oss-120b-vulkan-radv-benchmark-run-a2cfa8b471ab Creating 
+ Container genai-mei-heretic-gpt-oss-120b-vulkan-radv-benchmark-run-a2cfa8b471ab Created 
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Radeon 8060S Graphics (RADV GFX1151) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           pp512 |      449.79 ± 108.83 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp1024 |        500.37 ± 2.58 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |          pp2048 |       485.29 ± 11.21 |
+| gpt-oss 120B BF16              |  60.87 GiB |   116.83 B | Vulkan     | 999 |           tg128 |         35.42 ± 0.17 |
+
+build: b65bb4baa (9276)

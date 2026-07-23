@@ -1,0 +1,17 @@
+time="2026-06-10T19:04:55+10:00" level=warning msg="No services to build"
+time="2026-06-10T19:04:55+10:00" level=warning msg="No services to build"
+ Container genai-mei-qwen3-4b-128k-q6-rocm-724-benchmark-run-558611208e71 Creating 
+ Container genai-mei-qwen3-4b-128k-q6-rocm-724-benchmark-run-558611208e71 Created 
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+| model                          |       size |     params | backend    | ngl |  fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --: | --------------: | -------------------: |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | ROCm       | 999 |   1 |           pp512 |     1533.41 ± 532.63 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | ROCm       | 999 |   1 |          pp1024 |     1980.11 ± 165.58 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | ROCm       | 999 |   1 |          pp2048 |      1897.38 ± 39.15 |
+| qwen3 4B Q6_K                  |   3.40 GiB |     4.02 B | ROCm       | 999 |   1 |           tg128 |         50.05 ± 1.21 |
+
+build: 76da2450a (9586)
+- { rocblas_function: "rocblas_gemm_ex", atomics_mode: atomics_not_allowed, a_type: "f16_r", b_type: "f16_r", c_type: "f16_r", d_type: "f16_r", compute_type: "f16_r", transA: 'T', transB: 'N', M: 2560, N: 512, K: 9728, alpha: 1.0, lda: 9728, ldb: 9728, beta: 0.0, ldc: 2560, ldd: 2560, algo: 0, solution_index: 0, flags: none, call_count: 832 }
+- { rocblas_function: "rocblas_gemm_ex", atomics_mode: atomics_not_allowed, a_type: "f16_r", b_type: "f16_r", c_type: "f16_r", d_type: "f16_r", compute_type: "f16_r", transA: 'T', transB: 'N', M: 9728, N: 512, K: 2560, alpha: 1.0, lda: 2560, ldb: 2560, beta: 0.0, ldc: 9728, ldd: 9728, algo: 0, solution_index: 0, flags: none, call_count: 1984 }
+- { rocblas_function: "rocblas_gemm_ex", atomics_mode: atomics_not_allowed, a_type: "f16_r", b_type: "f16_r", c_type: "f16_r", d_type: "f16_r", compute_type: "f16_r", transA: 'T', transB: 'N', M: 2560, N: 512, K: 4096, alpha: 1.0, lda: 4096, ldb: 4096, beta: 0.0, ldc: 2560, ldd: 2560, algo: 0, solution_index: 0, flags: none, call_count: 1152 }

@@ -1,0 +1,11 @@
+time="2026-06-10T19:38:17+10:00" level=warning msg="No services to build"
+time="2026-06-10T19:38:17+10:00" level=warning msg="No services to build"
+ Container genai-mei-heretic-gpt-oss-120b-q8-rocm-723-benchmark-run-3c4749b04a3e Creating 
+ Container genai-mei-heretic-gpt-oss-120b-q8-rocm-723-benchmark-run-3c4749b04a3e Created 
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+llama_bench: error: failed to load model '/huggingface/hub/models--bartowski--kldzj_gpt-oss-120b-heretic-GGUF/snapshots/406292f67859a86dd34853c75b573aadedf6cbda/kldzj_gpt-oss-120b-heretic-Q8_0/kldzj_gpt-oss-120b-heretic-Q8_0-00001-of-00002.gguf'
+
+Error: executing /usr/local/bin/docker-compose run --rm heretic-gpt-oss-120b-q8-rocm-723-benchmark: exit status 1
