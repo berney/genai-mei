@@ -15,7 +15,7 @@ export PODMAN_COMPOSE_WARNING_LOGS=false
 # If arguments supplied
 if [ $# -gt 0 ]; then
     # Use them to filter with ripgrep
-    SERVICES=$(docker compose --profile benchmark config --services | sort | rg "$@")
+    SERVICES=$(docker compose --profile benchmark config --services | sort | rg --pcre2 "$@")
 else
     SERVICES=$(docker compose --profile benchmark config --services | sort)
 fi
