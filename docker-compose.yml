@@ -27,6 +27,8 @@ x-engine: &x-engine
   volumes:
     #- ./models:/models:Z
     - ~/.cache/huggingface:/huggingface:ro
+    #- ./templates:/templates:ro
+    - ~/templates:/templates:ro
 
 x-engine-rocm-723: &x-engine-rocm-723
   <<: *x-engine
@@ -223,6 +225,7 @@ services:
       - ${XDG_RUNTIME_DIR}/podman:/run/user/1000/podman:Z
       # The parent directory needs to match the host as docker-compose bases the container names off it
       - ./docker-compose.yml:/genai-mei/docker-compose.yml:ro
+      #- ./templates:/genai-mei/templates:Z
       #- ./models:/models:Z
       # Don't needed to mount as podman (compose) is doing bind mounts from hosts point of view
       # But the `~` in the docker-compose.yml (this file) should match in the container and host (e.g. `bdawg`)
@@ -619,6 +622,8 @@ services:
       --presence-penalty 1.5
       --mmproj /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/mmproj-BF16.gguf
       --spec-type draft-mtp
+      --jinja
+      --chat-template-file /templates/qwen-sharp-chat.jinja
 
   qwen3.8-27B-q8: &qwen3.8-27B-q8
     <<: *x-model-rocm-7-14
@@ -636,6 +641,8 @@ services:
       --presence-penalty 1.5
       --mmproj /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/mmproj-BF16.gguf
       --spec-type draft-mtp
+      --jinja
+      --chat-template-file /templates/qwen-sharp-chat.jinja
 
   qwen3.8-27B-q4-rocm-723-benchmark:
     <<: *x-model-benchmark-rocm-723
@@ -684,6 +691,8 @@ services:
       --presence-penalty 1.5
       --mmproj /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/mmproj-BF16.gguf
       --spec-type draft-mtp
+      --jinja
+      --chat-template-file /templates/qwen-sharp-chat.jinja
 
   qwen3.8-27B-q6-rocm-723-benchmark:
     <<: *x-model-benchmark-rocm-723
