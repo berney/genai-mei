@@ -1,0 +1,17 @@
+time="2026-08-18T18:21:35+10:00" level=warning msg="No services to build"
+ Network genai-mei_default Creating 
+ Network genai-mei_default Created 
+time="2026-08-18T18:21:35+10:00" level=warning msg="No services to build"
+ Container genai-mei-qwen3.8-27B-q4-rocm-7-14-benchmark-run-09d241492bf5 Creating 
+ Container genai-mei-qwen3.8-27B-q4-rocm-7-14-benchmark-run-09d241492bf5 Created 
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+| model                          |       size |     params | backend    | ngl |  fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --: | --------------: | -------------------: |
+| qwen35 27B Q4_K - Small        |  16.68 GiB |    27.32 B | ROCm       | 999 |   1 |           pp512 |        410.75 ± 5.38 |
+| qwen35 27B Q4_K - Small        |  16.68 GiB |    27.32 B | ROCm       | 999 |   1 |          pp1024 |        409.18 ± 1.76 |
+| qwen35 27B Q4_K - Small        |  16.68 GiB |    27.32 B | ROCm       | 999 |   1 |          pp2048 |        403.69 ± 0.65 |
+| qwen35 27B Q4_K - Small        |  16.68 GiB |    27.32 B | ROCm       | 999 |   1 |           tg128 |         11.75 ± 0.00 |
+
+build: 25ae3a9b3 (10481)
+- { rocblas_function: "rocblas_gemm_ex", atomics_mode: atomics_not_allowed, a_type: "f16_r", b_type: "f16_r", c_type: "f16_r", d_type: "f16_r", compute_type: "f16_r", transA: 'T', transB: 'N', M: 1024, N: 512, K: 5120, alpha: 1.0, lda: 5120, ldb: 5120, beta: 0.0, ldc: 1024, ldd: 1024, algo: 0, solution_index: 0, flags: none, call_count: 512 }

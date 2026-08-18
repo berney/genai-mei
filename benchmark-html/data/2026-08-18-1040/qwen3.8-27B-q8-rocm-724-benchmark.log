@@ -1,0 +1,14 @@
+time="2026-08-18T10:49:52+10:00" level=warning msg="No services to build"
+time="2026-08-18T10:49:52+10:00" level=warning msg="No services to build"
+ Container genai-mei-qwen3.8-27B-q8-rocm-724-benchmark-run-9f484833e092 Creating 
+ Container genai-mei-qwen3.8-27B-q8-rocm-724-benchmark-run-9f484833e092 Created 
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+| model                          |       size |     params | backend    | ngl |  fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --: | --------------: | -------------------: |
+| qwen35 27B Q8_0                |  27.04 GiB |    27.32 B | ROCm       | 999 |   1 |           pp512 |       363.40 ± 15.06 |
+| qwen35 27B Q8_0                |  27.04 GiB |    27.32 B | ROCm       | 999 |   1 |          pp1024 |        372.56 ± 1.58 |
+| qwen35 27B Q8_0                |  27.04 GiB |    27.32 B | ROCm       | 999 |   1 |          pp2048 |        370.42 ± 0.27 |
+| qwen35 27B Q8_0                |  27.04 GiB |    27.32 B | ROCm       | 999 |   1 |           tg128 |          7.75 ± 0.00 |
+
+build: 555881ebc (10121)
