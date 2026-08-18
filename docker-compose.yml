@@ -602,6 +602,105 @@ services:
 
 
 
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
+  qwen3.8-27B-q4: &qwen3.8-27B-q4
+    <<: *x-model-rocm-7-14
+    environment: &qwen3.8-27B-q4-env
+      <<: *x-model-rocm-7-14-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/Qwen3.8-27B-UD-Q4_K_XL.gguf
+      #LLAMA_ARG_CONT_BATCHING: off
+      LLAMA_ARG_TOP_K: 20
+    ports:
+      - 8160:8080
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --presence-penalty 1.5
+      --mmproj /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/mmproj-BF16.gguf
+      --spec-type draft-mtp
+
+  qwen3.8-27B-q8: &qwen3.8-27B-q8
+    <<: *x-model-rocm-7-14
+    environment: &qwen3.8-27B-q8-env
+      <<: *x-model-rocm-7-14-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/Qwen3.8-27B-Q8_0.gguf
+      #LLAMA_ARG_CONT_BATCHING: off
+      LLAMA_ARG_TOP_K: 20
+    ports:
+      - 8161:8080
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --presence-penalty 1.5
+      --mmproj /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/mmproj-BF16.gguf
+      --spec-type draft-mtp
+
+  qwen3.8-27B-q4-rocm-723-benchmark:
+    <<: *x-model-benchmark-rocm-723
+    environment:
+      <<: *qwen3.8-27B-q4-env
+
+  qwen3.8-27B-q4-rocm-724-benchmark:
+    <<: *x-model-benchmark-rocm-724
+    environment:
+      <<: *qwen3.8-27B-q4-env
+
+  qwen3.8-27B-q4-rocm-7-14-benchmark:
+    <<: *x-model-benchmark-rocm-7-14
+    environment:
+      <<: *qwen3.8-27B-q4-env
+
+  qwen3.8-27B-q8-rocm-723-benchmark:
+    <<: *x-model-benchmark-rocm-723
+    environment:
+      <<: *qwen3.8-27B-q8-env
+
+  qwen3.8-27B-q8-rocm-724-benchmark:
+    <<: *x-model-benchmark-rocm-724
+    environment:
+      <<: *qwen3.8-27B-q8-env
+
+  qwen3.8-27B-q8-rocm-7-14-benchmark:
+    <<: *x-model-benchmark-rocm-7-14
+    environment:
+      <<: *qwen3.8-27B-q8-env
+
+  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
+  qwen3.8-27B-q6: &qwen3.8-27B-q6
+    <<: *x-model-rocm-7-14
+    environment: &qwen3.8-27B-q6-env
+      <<: *x-model-rocm-7-14-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/Qwen3.8-27B-UD-Q6_K_XL.gguf
+      #LLAMA_ARG_CONT_BATCHING: off
+      LLAMA_ARG_TOP_K: 20
+    ports:
+      - 8162:8080
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --presence-penalty 1.5
+      --mmproj /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/mmproj-BF16.gguf
+      --spec-type draft-mtp
+
+  qwen3.8-27B-q6-rocm-723-benchmark:
+    <<: *x-model-benchmark-rocm-723
+    environment:
+      <<: *qwen3.8-27B-q6-env
+
+  qwen3.8-27B-q6-rocm-724-benchmark:
+    <<: *x-model-benchmark-rocm-724
+    environment:
+      <<: *qwen3.8-27B-q6-env
+
+  qwen3.8-27B-q6-rocm-7-14-benchmark:
+    <<: *x-model-benchmark-rocm-7-14
+    environment:
+      <<: *qwen3.8-27B-q6-env
+
+
   # ---------------------------------------------------------------------------------------------------------------------------------
 
   # Kokoro TTS

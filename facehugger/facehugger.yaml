@@ -100,3 +100,14 @@ models:
     include:
       - diffusiongemma-26B-A4B-it-Q5_K_M.gguf
       - diffusiongemma-26B-A4B-it-Q8_0.gguf
+
+  - repo: unsloth/Qwen3.8-2.4T-A95B-GGUF
+    include:
+      - UD-Q1_0/Qwen3.8-2.4T-A95B-UD-Q1_0-*-of-00010.gguf
+
+  - repo: unsloth/Qwen3.8-27B-GGUF
+    include:
+      - Qwen3.8-27B-UD-Q4_K_XL.gguf
+      - Qwen3.8-27B-UD-Q6_K_XL.gguf
+      - Qwen3.8-27B-Q8_0.gguf
+      - mmproj-BF16.gguf
