@@ -180,7 +180,7 @@ xh localhost:8090/running
 xh localhost:8090/v1/models
 
 # Test inference
-xh localhost:8090/v1/chat/completions content-type:application/json model=heretic-gpt-oss-120b max_tokens=50 messages:='[{"role": "user", "content": "Hello!"}]'
+xh localhost:8090/v1/chat/completions content-type:application/json model=heretic-gpt-oss-120b max_tokens:=50 messages:='[{"role": "user", "content": "Hello!"}]'
 ```
 
 ### `curl`
