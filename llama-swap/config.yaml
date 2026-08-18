@@ -261,36 +261,81 @@ models:
   # --------------------------------------------------------------------------------
   qwen3.8-27B-q4:
     name: "unsloth/Qwen3.8-27B (Q4_K_XL)"
-    description: |
-      MoE model (27B total / 2.4B active), featuring:
-      - high efficiency with small active parameter count
-      - fast inference on Strix Halo
     cmd: podman compose up qwen3.8-27B-q4
     cmdStop: podman compose stop qwen3.8-27B-q4
     proxy: http://qwen3.8-27B-q4:8080
     ttl: 3600
 
+    filters:
+      setParamsByID:
+        "${MODEL_ID}":
+          temperature: 1.0
+          top_k: 20
+          top_p: 0.95
+          min_p: 0.0
+          presence_penalty: 0.0
+          chat_template_kwargs:
+            enable_thinking: true
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_k: 20
+          top_p: 0.80
+          min_p: 0.0
+          presence_penalty: 1.5
+          chat_template_kwargs:
+            enable_thinking: false
+
+  qwen3.8-27B-q6:
+    name: "unsloth/Qwen3.8-27B (Q6_K_XL)"
+    cmd: podman compose up qwen3.8-27B-q6
+    cmdStop: podman compose stop qwen3.8-27B-q6
+    proxy: http://qwen3.8-27B-q6:8080
+    ttl: 3600
+
+    filters:
+      setParamsByID:
+        "${MODEL_ID}":
+          temperature: 1.0
+          top_k: 20
+          top_p: 0.95
+          min_p: 0.0
+          presence_penalty: 0.0
+          chat_template_kwargs:
+            enable_thinking: true
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_k: 20
+          top_p: 0.80
+          min_p: 0.0
+          presence_penalty: 1.5
+          chat_template_kwargs:
+            enable_thinking: false
+
   qwen3.8-27B-q8:
     name: "unsloth/Qwen3.8-27B (Q8_0)"
-    description: |
-      MoE model (27B total / 2.4B active), featuring:
-      - high precision quantization for better quality
-      - slower than Q4 but more accurate
     cmd: podman compose up qwen3.8-27B-q8
     cmdStop: podman compose stop qwen3.8-27B-q8
     proxy: http://qwen3.8-27B-q8:8080
     ttl: 3600
 
-  qwen3.8-27B-q6:
-    name: "unsloth/Qwen3.8-27B (Q6_K_XL)"
-    description: |
-      MoE model (27B total / 2.4B active), featuring:
-      - balanced quality/speed tradeoff between Q4 and Q8
-      - same quantization as friend's setup (~21 tok/s)
-    cmd: podman compose up qwen3.8-27B-q6
-    cmdStop: podman compose stop qwen3.8-27B-q6
-    proxy: http://qwen3.8-27B-q6:8080
-    ttl: 3600
+    filters:
+      setParamsByID:
+        "${MODEL_ID}":
+          temperature: 1.0
+          top_k: 20
+          top_p: 0.95
+          min_p: 0.0
+          presence_penalty: 0.0
+          chat_template_kwargs:
+            enable_thinking: true
+        "${MODEL_ID}:instruct":
+          temperature: 0.7
+          top_k: 20
+          top_p: 0.80
+          min_p: 0.0
+          presence_penalty: 1.5
+          chat_template_kwargs:
+            enable_thinking: false
 
   # --------------------------------------------------------------------------------
   kokoro-tts:
