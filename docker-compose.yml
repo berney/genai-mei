@@ -44,6 +44,14 @@ x-engine-rocm-724: &x-engine-rocm-724
     args:
       TAG: rocm-7.2.4
 
+x-engine-rocm-7-14: &x-engine-rocm-7-14
+  <<: *x-engine
+  image: berne/amd-strix-halo-toolboxes:rocm-7.14
+  build:
+    context: amd-strix-halo-toolboxes
+    args:
+      TAG: rocm-7.14
+
 x-model: &x-model
   # FML not all arguments have env var equivalents: warmup, temp, top-p, min-p, typical
   command: >-
@@ -92,6 +100,14 @@ x-model-rocm-724: &x-model-rocm-724
   environment: &x-model-rocm-724-env
     <<: [*x-model-env, *x-engine-env]
 
+x-model-rocm-7-14: &x-model-rocm-7-14
+  <<: [*x-model, *x-engine-rocm-7-14]
+  profiles:
+    - model
+    - rocm-7.14
+  environment: &x-model-rocm-7-14-env
+    <<: [*x-model-env, *x-engine-env]
+
 x-model-benchmark-rocm-723: &x-model-benchmark-rocm-723
   <<: [*x-model-benchmark, *x-engine-rocm-723]
   profiles:
@@ -106,6 +122,14 @@ x-model-benchmark-rocm-724: &x-model-benchmark-rocm-724
     - benchmark
     - rocm-7.2.4
   environment: &x-model-benchmark-rocm-724-env
+    <<: [*x-model-env, *x-engine-env]
+
+x-model-benchmark-rocm-7-14: &x-model-benchmark-rocm-7-14
+  <<: [*x-model-benchmark, *x-engine-rocm-7-14]
+  profiles:
+    - benchmark
+    - rocm-7.14
+  environment: &x-model-benchmark-rocm-7-14-env
     <<: [*x-model-env, *x-engine-env]
 
 
@@ -124,7 +148,8 @@ services:
       - "8185:8080"
     volumes:
       - ./searxng:/etc/searxng:Z
-    restart: unless-stopped
+    restart: no
+    env_file: .env/searxng.env
     healthcheck:
       test: ["CMD", "/usr/sbin/wget", "-q", "--spider", "http://localhost:8080"]
       interval: 30s
@@ -158,7 +183,7 @@ services:
       # implicit default
       - ""
     build: llama-swap
-    image: berne/llama-swap:rcom-non-root
+    image: berne/llama-swap:rocm-non-root
     #user: "1000:1000"
     userns_mode: keep-id
     # This is `ubuntu` user rather than `app` user.
@@ -257,7 +282,12 @@ services:
   whisper.cpp:
     profiles:
       - whisper
-    image: ghcr.io/ggml-org/whisper.cpp:main-rocm
+    # main-rocm tag doesn't exist - this was a local build where I didn't change the FQ name
+    #image: ghcr.io/ggml-org/whisper.cpp:main-rocm
+    #image: ghcr.io/ggml-org/whisper.cpp:main-vulkan
+    image: ghcr.io/ggml-org/whisper.cpp:main-vulkan-306c88f4d1286aec1bf96e544632897886af5501
+    #image: berne/whisper.cpp:main-vulkan
+    #image: berne/whisper.cpp:main-rocm
     userns_mode: keep-id
     # Command Line
     # - entrypoint is `bash -c` so need the quotes
@@ -277,7 +307,7 @@ services:
       - /dev/kfd:/dev/kfd
     #group_add:
     #  - video
-    restart: unless-stopped
+    restart: never
     security_opt:
       - seccomp:unconfined
       - apparmor:unconfined
@@ -300,7 +330,9 @@ services:
   whisper-bench:
     profiles:
       - whisper-bench
-    image: ghcr.io/ggml-org/whisper.cpp:main-rocm
+    # main-rocm tag doesn't exist - this was a local build where I didn't change the FQ name
+    #image: ghcr.io/ggml-org/whisper.cpp:main-rocm
+    image: ghcr.io/ggml-org/whisper.cpp:main-vulkan
     userns_mode: keep-id
     # entrypoint is `bash -c` so need the quotes
     # need to listen on 0.0.0.0 so host can connect to docker published port
@@ -383,9 +415,9 @@ services:
 
   # --------------------------------------------------------------------------------------------------------------------------------
   qwen36-35B-A3B: &qwen36-35B-A3B
-    <<: *x-model-rocm-724
+    <<: *x-model-rocm-7-14
     environment: &qwen36-35B-A3B-env
-      <<: *x-model-rocm-724-env
+      <<: *x-model-rocm-7-14-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-GGUF/snapshots/a483e9e6cbd595906af30beda3187c2663a1118c/Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -403,9 +435,9 @@ services:
     #  --typical 0.95 (default is 1.0)
 
   qwen36-35B-A3B-MTP: &qwen36-35B-A3B-MTP
-    <<: *x-model-rocm-724
+    <<: *x-model-rocm-7-14
     environment: &qwen36-35B-A3B-MTP-env
-      <<: *x-model-rocm-724-env
+      <<: *x-model-rocm-7-14-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-MTP-GGUF/snapshots/b8efbbece76dc9103a6a45b7ed95b26c3932fc5f/Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -440,6 +472,11 @@ services:
     environment:
       <<: *qwen36-35B-A3B-env
 
+  qwen36-35B-A3B-rocm-7-14-benchmark:
+    <<: *x-model-benchmark-rocm-7-14
+    environment:
+      <<: *qwen36-35B-A3B-env
+
 
   # Qwen3.6 35B A3B MTP
   qwen36-35B-A3B-MTP-rocm-723-benchmark:
@@ -452,12 +489,17 @@ services:
     environment:
       <<: *qwen36-35B-A3B-MTP-env
 
+  qwen36-35B-A3B-MTP-rocm-7-14-benchmark:
+    <<: *x-model-benchmark-rocm-7-14
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
 
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   qwen36-27B: &qwen36-27B
-    <<: *x-model-rocm-724
+    <<: *x-model-rocm-7-14
     environment: &qwen36-27B-env
-      <<: *x-model-rocm-724-env
+      <<: *x-model-rocm-7-14-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-27B-GGUF/snapshots/82d411acf4a06cfb8d9b073a5211bf410bfc29bf/Qwen3.6-27B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -472,9 +514,9 @@ services:
       --mmproj /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-GGUF/snapshots/82d411acf4a06cfb8d9b073a5211bf410bfc29bf/mmproj-BF16.gguf
 
   qwen36-27B-MTP: &qwen36-27B-MTP
-    <<: *x-model-rocm-724
+    <<: *x-model-rocm-7-14
     environment: &qwen36-27B-MTP-env
-      <<: *x-model-rocm-724-env
+      <<: *x-model-rocm-7-14-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-27B-MTP-GGUF/snapshots/0da008d9b980b76520a952bb3aa4abbaa0955647/Qwen3.6-27B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -501,6 +543,11 @@ services:
     environment:
       <<: *qwen36-27B-env
 
+  qwen36-27B-rocm-7-14-benchmark:
+    <<: *x-model-benchmark-rocm-7-14
+    environment:
+      <<: *qwen36-27B-env
+
 
   # Qwen3.6 27B MTP
   qwen36-27B-MTP-rocm-723-benchmark:
@@ -513,20 +560,25 @@ services:
     environment:
       <<: *qwen36-27B-MTP-env
 
+  qwen36-27B-MTP-rocm-7-14-benchmark:
+    <<: *x-model-benchmark-rocm-7-14
+    environment:
+      <<: *qwen36-27B-MTP-env
+
 
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   qwen3-4b-128k-q6:
-    <<: *x-model-rocm-724
+    <<: *x-model-rocm-7-14
     environment: &qwen3-4b-128k-q6-env
-      <<: *x-model-rocm-724-env
+      <<: *x-model-rocm-7-14-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q6_K_XL.gguf
     ports:
       - 8150:8080
 
   qwen3-4b-128k-q6-voice:
-    <<: *x-model-rocm-724
+    <<: *x-model-rocm-7-14
     environment: &qwen3-4b-128k-q6-env
-      <<: *x-model-rocm-724-env
+      <<: *x-model-rocm-7-14-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q6_K_XL.gguf
       # Direct response mode, non-thinking-mode, give immediate response, better UX for voice chat
       LLAMA_ARG_REASONING: off
@@ -540,6 +592,11 @@ services:
 
   qwen3-4b-128k-q6-rocm-724-benchmark:
     <<: *x-model-benchmark-rocm-724
+    environment:
+      <<: *qwen3-4b-128k-q6-env
+
+  qwen3-4b-128k-q6-rocm-7-14-benchmark:
+    <<: *x-model-benchmark-rocm-7-14
     environment:
       <<: *qwen3-4b-128k-q6-env
 
