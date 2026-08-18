@@ -3,6 +3,20 @@ healthCheckTimeout: 600
 logLevel: debug
 metricsMaxInMemory: 1000
 
+# sendLoadingState: inject loading status updates into the reasoning (thinking)
+# field
+# - optional, default: false
+# - when true, a stream of loading messages will be sent to the client in the
+#   reasoning field so chat UIs can show that loading is in progress.
+# - see #366 for more details
+sendLoadingState: true
+
+# includeAliasesInList: present aliases within the /v1/models OpenAI API listing
+# - optional, default: false
+# - when true, model aliases will be output to the API model listing duplicating
+#   all fields except for Id so chat UIs can use the alias equivalent to the original.
+includeAliasesInList: true
+
 macros:
   # Shared model storage
   #models-path: /models
@@ -175,17 +189,108 @@ models:
     proxy: http://qwen36-35b-a3b-mtp:8080
     ttl: 3600
     aliases:
-      - claude-sonnet-5
-      - claude-sonnet-4-6
-      - claude-haiku-4-5
-      - claude-haiku-4-5-20251001
-      - claude-opus-4-7
-      - claude-opus-4-8
+      #- claude-sonnet-5
+      #- claude-sonnet-4-6
+      #- claude-haiku-4-5
+      #- claude-haiku-4-5-20251001
+      #- claude-opus-4-7
+      #- claude-opus-4-8
       - coding
       - coder
       - code
       - dev
       - default
+
+    filters:
+      setParamsByID:
+        "${MODEL_ID}":
+          temperature: 0.6
+          top_k: 20
+          top_p: 0.95
+          min_p: 0.0
+          presence_penalty: 0.0
+          chat_template_kwargs:
+            enable_thinking: true
+        "${MODEL_ID}:nothink":
+          temperature: 0.7
+          top_k: 20
+          top_p: 0.8
+          min_p: 0.0
+          presence_penalty: 1.5
+          chat_template_kwargs:
+            enable_thinking: false
+        "${MODEL_ID}:precise":
+          temperature: 0.1
+          top_k: 20
+          top_p: 0.95
+          min_p: 0.g
+          gin_p: 0.0
+          presence_penalty: 0.0
+          #chat_template_kwargs:
+          #  # should be default
+          #  enable_thinking: true
+        "${MODEL_ID}:precise-preserve-thinking":
+          temperature: 0.1
+          top_k: 20
+          top_p: 0.95
+          min_p: 0.g
+          gin_p: 0.0
+          presence_penalty: 0.0
+          chat_template_kwargs:
+            # should be default
+            #enable_thinking: true
+            preserve_thinking: true
+        "${MODEL_ID}:precise-instruct":
+          temperature: 0.1
+          top_k: 20
+          top_p: 0.95
+          min_p: 0.g
+          gin_p: 0.0
+          presence_penalty: 0.0
+          chat_template_kwargs:
+            enable_thinking: false
+        "${MODEL_ID}:creative":
+          temperature: 1.0
+          top_k: 20
+          top_p: 0.95
+          min_p: 0.0
+          presence_penalty: 0.5
+          chat_template_kwargs:
+            enable_thinking: false
+
+  # --------------------------------------------------------------------------------
+  qwen3.8-27B-q4:
+    name: "unsloth/Qwen3.8-27B (Q4_K_XL)"
+    description: |
+      MoE model (27B total / 2.4B active), featuring:
+      - high efficiency with small active parameter count
+      - fast inference on Strix Halo
+    cmd: podman compose up qwen3.8-27B-q4
+    cmdStop: podman compose stop qwen3.8-27B-q4
+    proxy: http://qwen3.8-27B-q4:8080
+    ttl: 3600
+
+  qwen3.8-27B-q8:
+    name: "unsloth/Qwen3.8-27B (Q8_0)"
+    description: |
+      MoE model (27B total / 2.4B active), featuring:
+      - high precision quantization for better quality
+      - slower than Q4 but more accurate
+    cmd: podman compose up qwen3.8-27B-q8
+    cmdStop: podman compose stop qwen3.8-27B-q8
+    proxy: http://qwen3.8-27B-q8:8080
+    ttl: 3600
+
+  qwen3.8-27B-q6:
+    name: "unsloth/Qwen3.8-27B (Q6_K_XL)"
+    description: |
+      MoE model (27B total / 2.4B active), featuring:
+      - balanced quality/speed tradeoff between Q4 and Q8
+      - same quantization as friend's setup (~21 tok/s)
+    cmd: podman compose up qwen3.8-27B-q6
+    cmdStop: podman compose stop qwen3.8-27B-q6
+    proxy: http://qwen3.8-27B-q6:8080
+    ttl: 3600
 
   # --------------------------------------------------------------------------------
   kokoro-tts:
@@ -218,6 +323,40 @@ models:
     ttl: 0
 
 
+# selectors: virtual model IDs resolved to concrete targets per request
+# - optional, default: empty dictionary
+# - profiles run first, so a profile pin may target a selector
+# - selector IDs cannot collide with model IDs, aliases, or peer model names
+# - selector targets cannot be other selectors
+# - selectors are not supported on /upstream/<model> paths
+# selectors: route Claude Code dynamic model IDs to local Qwen3.6-35B-A3B-MTP
+# Claude Code sends model IDs like claude-sonnet-4-1-20250514; these selectors
+# catch them and resolve to the local model which applies its setParamsByID
+# filters (reasoning_effort variants, etc.). No corresponding aliases needed in
+# the models block — the selector does all the routing.
+selectors:
+  claude-sonnet-4-1:
+    # pin always uses the first target; remaining entries are reference data
+    strategy: pin
+    targets:
+      - qwen3.6-35B-A3B-MTP:precise
+    name: Claude Sonnet 4 (Code)
+  claude-sonnet-5:
+    strategy: pin
+    targets:
+      - qwen3.6-35B-A3B-MTP:precise
+    name: Claude Sonnet 4.5 (Code)
+  "claude-opus-4-8[1m]":
+    strategy: pin
+    targets:
+      - qwen3.6-35B-A3B-MTP:precise-preserve-thinking
+    name: Claude Opus 4 (Code)
+  claude-haiku-4-5-20251001:
+    strategy: pin
+    targets:
+      - qwen3.6-35B-A3B-MTP:precise-instruct
+    name: Claude Haiku 4.5 (Code)
+
 groups:
 #  main:
 #    swap: true
@@ -237,11 +376,11 @@ groups:
 #      - "granite-docling"
 #      - "qwen-vision"
       #- "qwen3-4b-q6"
-      #- "qwen3-4b-q6-voice"
+      - "qwen3-4b-q6-voice"
       #- "qwen3-4b-q8"
-      #- kokoro-tts
-      #- kokoro-tts-rocm
-      #- whisper
+      - kokoro-tts
+      - kokoro-tts-rocm
+      - whisper
 
 hooks:
   on_startup:
