@@ -1,0 +1,23 @@
+time="2026-08-27T14:58:58+10:00" level=warning msg="No services to build"
+time="2026-08-27T14:58:58+10:00" level=warning msg="No services to build"
+ Container genai-mei-qwen3.8-Flash-Next-IQ4-benchmark-run-883e8f37457e Creating 
+ Container genai-mei-qwen3.8-Flash-Next-IQ4-benchmark-run-883e8f37457e Created 
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
+| model                          |       size |     params | backend    | ngl |  fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --: | --------------: | -------------------: |
+| qwen4exp A3B IQ4_XS - 4.25 bpw |  87.24 GiB |   176.94 B | ROCm       | 999 |   1 |           pp512 |       390.51 ± 33.86 |
+| qwen4exp A3B IQ4_XS - 4.25 bpw |  87.24 GiB |   176.94 B | ROCm       | 999 |   1 |          pp1024 |        407.11 ± 8.22 |
+| qwen4exp A3B IQ4_XS - 4.25 bpw |  87.24 GiB |   176.94 B | ROCm       | 999 |   1 |          pp2048 |        373.48 ± 3.96 |
+| qwen4exp A3B IQ4_XS - 4.25 bpw |  87.24 GiB |   176.94 B | ROCm       | 999 |   1 |           tg128 |         21.40 ± 0.01 |
+
+build: 5e6a37cb1 (10639)
+- { rocblas_function: "rocblas_gemm_ex", atomics_mode: atomics_not_allowed, a_type: "bf16_r", b_type: "bf16_r", c_type: "bf16_r", d_type: "bf16_r", compute_type: "f32_r", transA: 'T', transB: 'N', M: 512, N: 512, K: 2560, alpha: 1.0, lda: 2560, ldb: 2560, beta: 0.0, ldc: 512, ldd: 512, algo: 0, solution_index: 0, flags: none, call_count: 384 }
+- { rocblas_function: "rocblas_gemm_ex", atomics_mode: atomics_not_allowed, a_type: "bf16_r", b_type: "bf16_r", c_type: "bf16_r", d_type: "bf16_r", compute_type: "f32_r", transA: 'T', transB: 'N', M: 128, N: 512, K: 2560, alpha: 1.0, lda: 2560, ldb: 2560, beta: 0.0, ldc: 128, ldd: 128, algo: 0, solution_index: 0, flags: none, call_count: 384 }
+- { rocblas_function: "rocblas_sgemm", atomics_mode: atomics_not_allowed, transA: 'T', transB: 'N', M: 512, N: 2048, K: 128, alpha: 1.0, lda: 128, ldb: 128, beta: 0.0, ldc: 512, call_count: 60 }
+- { rocblas_function: "rocblas_sgemm", atomics_mode: atomics_not_allowed, transA: 'T', transB: 'N', M: 256, N: 2048, K: 128, alpha: 1.0, lda: 128, ldb: 128, beta: 0.0, ldc: 256, call_count: 120 }
+- { rocblas_function: "rocblas_sgemm", atomics_mode: atomics_not_allowed, transA: 'T', transB: 'N', M: 512, N: 512, K: 2560, alpha: 1.0, lda: 2560, ldb: 2560, beta: 0.0, ldc: 512, call_count: 1536 }
+- { rocblas_function: "rocblas_sgemm", atomics_mode: atomics_not_allowed, transA: 'T', transB: 'N', M: 128, N: 2048, K: 128, alpha: 1.0, lda: 128, ldb: 128, beta: 0.0, ldc: 128, call_count: 144 }
+- { rocblas_function: "rocblas_sgemm", atomics_mode: atomics_not_allowed, transA: 'T', transB: 'N', M: 4, N: 512, K: 10240, alpha: 1.0, lda: 10240, ldb: 10240, beta: 0.0, ldc: 4, call_count: 3072 }
+- { rocblas_function: "rocblas_sgemm", atomics_mode: atomics_not_allowed, transA: 'T', transB: 'N', M: 384, N: 2048, K: 128, alpha: 1.0, lda: 128, ldb: 128, beta: 0.0, ldc: 384, call_count: 60 }
+- { rocblas_function: "rocblas_sgemm", atomics_mode: atomics_not_allowed, transA: 'T', transB: 'N', M: 48, N: 512, K: 2560, alpha: 1.0, lda: 2560, ldb: 2560, beta: 0.0, ldc: 48, call_count: 2304 }
