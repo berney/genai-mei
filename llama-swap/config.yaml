@@ -223,7 +223,7 @@ models:
           temperature: 0.1
           top_k: 20
           top_p: 0.95
-          min_p: 0.g
+          min_p: 0.0
           gin_p: 0.0
           presence_penalty: 0.0
           #chat_template_kwargs:
@@ -233,7 +233,7 @@ models:
           temperature: 0.1
           top_k: 20
           top_p: 0.95
-          min_p: 0.g
+          min_p: 0.0
           gin_p: 0.0
           presence_penalty: 0.0
           chat_template_kwargs:
@@ -244,15 +244,15 @@ models:
           temperature: 0.1
           top_k: 20
           top_p: 0.95
-          min_p: 0.g
+          min_p: 0.0
           gin_p: 0.0
           presence_penalty: 0.0
           chat_template_kwargs:
             enable_thinking: false
         "${MODEL_ID}:creative":
           temperature: 1.0
-          top_k: 20
           top_p: 0.95
+          top_k: 20
           min_p: 0.0
           presence_penalty: 0.5
           chat_template_kwargs:
@@ -337,6 +337,62 @@ models:
           chat_template_kwargs:
             enable_thinking: false
 
+  qwen3.8-Flash-Next-IQ4:
+    name: "unsloth/Qwen3.8-Flash-Next (IQ4)"
+    cmd: podman compose up qwen3.8-Flash-Next-IQ4
+    cmdStop: podman compose stop qwen3.8-Flash-Next-IQ4
+    proxy: http://qwen3.8-Flash-Next-IQ4:8080
+    ttl: 3600
+    filters:
+      setParamsByID:
+        "${MODEL_ID}":  # creative
+          temperature: 1.0
+          top_p: 0.95
+          top_k: 20
+          min_p: 0.0
+          presence_penalty: 0.0
+          #chat_template_kwargs:
+          #  enable_thinking: true
+        "${MODEL_ID}:instruct": # nothink
+          temperature: 0.7
+          top_p: 0.80
+          top_k: 20
+          min_p: 0.0
+          presence_penalty: 1.5
+          chat_template_kwargs:
+            enable_thinking: false
+        "${MODEL_ID}:precise":
+          temperature: 0.1
+          top_p: 0.95
+          top_k: 20
+          min_p: 0.0
+          gin_p: 0.0
+          presence_penalty: 0.0
+          #chat_template_kwargs:
+          #  # should be default
+          #  enable_thinking: true
+        "${MODEL_ID}:precise-preserve-thinking":
+          temperature: 0.1
+          top_p: 0.95
+          top_k: 20
+          min_p: 0.0
+          gin_p: 0.0
+          presence_penalty: 0.0
+          chat_template_kwargs:
+            # should be default
+            #enable_thinking: true
+            preserve_thinking: true
+        "${MODEL_ID}:precise-instruct":
+          temperature: 0.1
+          top_p: 0.95
+          top_k: 20
+          min_p: 0.0
+          gin_p: 0.0
+          presence_penalty: 0.0
+          chat_template_kwargs:
+            enable_thinking: false
+
+
   # --------------------------------------------------------------------------------
   kokoro-tts:
     name: "kokoro TTS"
@@ -381,26 +437,30 @@ models:
 # the models block — the selector does all the routing.
 selectors:
   claude-sonnet-4-1:
+    name: Claude Sonnet 4 (Code)
     # pin always uses the first target; remaining entries are reference data
     strategy: pin
     targets:
-      - qwen3.6-35B-A3B-MTP:precise
-    name: Claude Sonnet 4 (Code)
+      #- qwen3.6-35B-A3B-MTP:precise
+      - qwen3.8-Flash-Next-IQ4:precise
   claude-sonnet-5:
-    strategy: pin
-    targets:
-      - qwen3.6-35B-A3B-MTP:precise
     name: Claude Sonnet 4.5 (Code)
+    strategy: pin
+    targets:
+      #- qwen3.6-35B-A3B-MTP:precise
+      - qwen3.8-Flash-Next-IQ4:precise
   "claude-opus-4-8[1m]":
-    strategy: pin
-    targets:
-      - qwen3.6-35B-A3B-MTP:precise-preserve-thinking
     name: Claude Opus 4 (Code)
-  claude-haiku-4-5-20251001:
     strategy: pin
     targets:
-      - qwen3.6-35B-A3B-MTP:precise-instruct
+      #- qwen3.6-35B-A3B-MTP:precise-preserve-thinking
+      - qwen3.8-Flash-Next-IQ4:precise-preserve-thinking
+  claude-haiku-4-5-20251001:
     name: Claude Haiku 4.5 (Code)
+    strategy: pin
+    targets:
+      #- qwen3.6-35B-A3B-MTP:precise-instruct
+      - qwen3.8-Flash-Next-IQ4:precise-instruct
 
 groups:
 #  main:
@@ -422,6 +482,7 @@ groups:
 #      - "qwen-vision"
       #- "qwen3-4b-q6"
       - "qwen3-4b-q6-voice"
+      - "qwen3.8-27B-q6"
       #- "qwen3-4b-q8"
       - kokoro-tts
       - kokoro-tts-rocm
