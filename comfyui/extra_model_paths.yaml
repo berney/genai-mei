@@ -1,0 +1,11 @@
+comfyui:
+    base_path: /home/bdawg/comfy-models
+
+    text_encoders: text_encoders
+    vae: vae
+    checkpoints: checkpoints
+    diffusion_models: diffusion_models
+    unet: unet
+    loras: loras
+    latent_upscale_models: latent_upscale_models
+    clip_vision: clip_vision
