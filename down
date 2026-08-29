@@ -1,4 +1,5 @@
 #!/bin/sh
+export PODMAN_COMPOSE_WARNING_LOGS=false
 docker compose down
 docker compose --profile whisper down
 docker compose --profile model down
