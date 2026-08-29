@@ -1,4 +1,4 @@
-# extensions
+## extensions
 # https://docs.docker.com/reference/compose-file/extension/
 # Prefixed these with `x-`
 
@@ -33,6 +33,7 @@ x-engine: &x-engine
 x-engine-rocm-723: &x-engine-rocm-723
   <<: *x-engine
   image: berne/amd-strix-halo-toolboxes:rocm-7.2.3
+  pull_policy: never
   build:
     context: amd-strix-halo-toolboxes
     args:
@@ -41,6 +42,7 @@ x-engine-rocm-723: &x-engine-rocm-723
 x-engine-rocm-724: &x-engine-rocm-724
   <<: *x-engine
   image: berne/amd-strix-halo-toolboxes:rocm-7.2.4
+  pull_policy: never
   build:
     context: amd-strix-halo-toolboxes
     args:
@@ -49,10 +51,20 @@ x-engine-rocm-724: &x-engine-rocm-724
 x-engine-rocm-7-14: &x-engine-rocm-7-14
   <<: *x-engine
   image: berne/amd-strix-halo-toolboxes:rocm-7.14
+  pull_policy: never
   build:
     context: amd-strix-halo-toolboxes
     args:
       TAG: rocm-7.14
+
+x-engine-rocm-10-0: &x-engine-rocm-10-0
+  <<: *x-engine
+  image: berne/amd-strix-halo-toolboxes:rocm-10-0
+  pull_policy: never
+  build:
+    context: amd-strix-halo-toolboxes
+    args:
+      TAG: rocm-10.0
 
 x-model: &x-model
   # FML not all arguments have env var equivalents: warmup, temp, top-p, min-p, typical
@@ -110,6 +122,14 @@ x-model-rocm-7-14: &x-model-rocm-7-14
   environment: &x-model-rocm-7-14-env
     <<: [*x-model-env, *x-engine-env]
 
+x-model-rocm-10-0: &x-model-rocm-10-0
+  <<: [*x-model, *x-engine-rocm-10-0]
+  profiles:
+    - model
+    - rocm-10.0
+  environment: &x-model-rocm-10-0-env
+    <<: [*x-model-env, *x-engine-env]
+
 x-model-benchmark-rocm-723: &x-model-benchmark-rocm-723
   <<: [*x-model-benchmark, *x-engine-rocm-723]
   profiles:
@@ -134,12 +154,67 @@ x-model-benchmark-rocm-7-14: &x-model-benchmark-rocm-7-14
   environment: &x-model-benchmark-rocm-7-14-env
     <<: [*x-model-env, *x-engine-env]
 
+x-model-benchmark-rocm-10-0: &x-model-benchmark-rocm-10-0
+  <<: [*x-model-benchmark, *x-engine-rocm-10-0]
+  profiles:
+    - benchmark
+    - rocm-10.0
+  environment: &x-model-benchmark-rocm-10-0-env
+    <<: [*x-model-env, *x-engine-env]
+
 
 volumes:
   openwebui-data:
   vane-uploads:
 
+
 services:
+  comfyui:
+    #image: docker.io/kyuz0/amd-strix-halo-comfyui
+    image: berne/comfyui
+    pull_policy: never
+    build: comfyui
+    ports:
+      - "8000:8000"
+    devices:
+      # Direct Rendering Infrastructure (dri) - exposes renderer nodes (renderD128) and compute shaders, used by Vulkan/Mesa
+      - /dev/dri:/dev/dri
+      # Kernel Fusion Driver (kfd) - primary compute interface - essential for HIP/ROCm
+      - /dev/kfd:/dev/kfd
+    # Needed for volume mounts to be user owned and writable, otherwise that are root:root
+    userns_mode: keep-id
+    #user: 1000:1000
+    group_add:
+      # Unable to find group render: no matching entries in group file
+      #- render
+      - video
+      #- app
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+      - label=disable
+    #environment:
+    #  HOME: /home/bdawg
+    #working_dir: /home/bdawg
+    working_dir: /opt/ComfyUI
+    #command: >
+    #  cd /opt/ComfyUI && python main.py --port 8000 --output-directory $HOME/comfy-outputs --disable-mmap --gpu-only --disable-smart-memory --cache-none --bf16-vae --listen
+    command: >-
+      python main.py
+        --port 8000
+        --output-directory
+        "$HOME/comfy-outputs"
+        --disable-mmap
+        --gpu-only
+        --disable-smart-memory
+        --cache-none
+        --bf16-vae
+        --listen
+    volumes:
+      #- ./comfyui/extra_model_paths.yaml:/opt/ComfyUI/extra_model_paths.yaml:Z
+      - ~/comfy-models:/home/bdawg/comfy-models:Z
+      - ~/comfy-outputs:/home/bdawg/comfy-outputs:Z
+
   searxng:
     profiles:
       # implicit default
@@ -186,6 +261,7 @@ services:
       - ""
     build: llama-swap
     image: berne/llama-swap:rocm-non-root
+    pull_policy: never
     #user: "1000:1000"
     userns_mode: keep-id
     # This is `ubuntu` user rather than `app` user.
@@ -239,6 +315,7 @@ services:
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     #image: berne/open-webui
+    #pull_policy: never
     profiles:
       # implicit default
       - ""
@@ -272,6 +349,7 @@ services:
 
   #context7-mcp:
   #  image: berne/context7-mcp
+  #  pull_policy: never
   #  profiles:
   #    # implicit default
   #    - ""
@@ -401,6 +479,7 @@ services:
       - apparmor:unconfined
       - label=disable
     image: berne/facehugger
+    pull_policy: never
     entrypoint: facehugger
     command: ""
     #command: >-
@@ -418,9 +497,9 @@ services:
 
   # --------------------------------------------------------------------------------------------------------------------------------
   qwen36-35B-A3B: &qwen36-35B-A3B
-    <<: *x-model-rocm-7-14
+    <<: *x-model-rocm-10-0
     environment: &qwen36-35B-A3B-env
-      <<: *x-model-rocm-7-14-env
+      <<: *x-model-rocm-10-0-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-GGUF/snapshots/a483e9e6cbd595906af30beda3187c2663a1118c/Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -438,9 +517,9 @@ services:
     #  --typical 0.95 (default is 1.0)
 
   qwen36-35B-A3B-MTP: &qwen36-35B-A3B-MTP
-    <<: *x-model-rocm-7-14
+    <<: *x-model-rocm-10-0
     environment: &qwen36-35B-A3B-MTP-env
-      <<: *x-model-rocm-7-14-env
+      <<: *x-model-rocm-10-0-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-MTP-GGUF/snapshots/b8efbbece76dc9103a6a45b7ed95b26c3932fc5f/Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -480,6 +559,11 @@ services:
     environment:
       <<: *qwen36-35B-A3B-env
 
+  qwen36-35B-A3B-rocm-10-0-benchmark:
+    <<: *x-model-benchmark-rocm-10-0
+    environment:
+      <<: *qwen36-35B-A3B-env
+
 
   # Qwen3.6 35B A3B MTP
   qwen36-35B-A3B-MTP-rocm-723-benchmark:
@@ -497,12 +581,17 @@ services:
     environment:
       <<: *qwen36-35B-A3B-MTP-env
 
+  qwen36-35B-A3B-MTP-rocm-10-0-benchmark:
+    <<: *x-model-benchmark-rocm-10-0
+    environment:
+      <<: *qwen36-35B-A3B-MTP-env
+
 
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   qwen36-27B: &qwen36-27B
-    <<: *x-model-rocm-7-14
+    <<: *x-model-rocm-10-0
     environment: &qwen36-27B-env
-      <<: *x-model-rocm-7-14-env
+      <<: *x-model-rocm-10-0-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-27B-GGUF/snapshots/82d411acf4a06cfb8d9b073a5211bf410bfc29bf/Qwen3.6-27B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -517,9 +606,9 @@ services:
       --mmproj /huggingface/hub/models--unsloth--Qwen3.6-35B-A3B-GGUF/snapshots/82d411acf4a06cfb8d9b073a5211bf410bfc29bf/mmproj-BF16.gguf
 
   qwen36-27B-MTP: &qwen36-27B-MTP
-    <<: *x-model-rocm-7-14
+    <<: *x-model-rocm-10-0
     environment: &qwen36-27B-MTP-env
-      <<: *x-model-rocm-7-14-env
+      <<: *x-model-rocm-10-0-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.6-27B-MTP-GGUF/snapshots/0da008d9b980b76520a952bb3aa4abbaa0955647/Qwen3.6-27B-UD-Q8_K_XL.gguf
       LLAMA_ARG_CONT_BATCHING: off
       # llama.cpp default is 40, unsloth guide recommends 20
@@ -551,6 +640,11 @@ services:
     environment:
       <<: *qwen36-27B-env
 
+  qwen36-27B-rocm-10-0-benchmark:
+    <<: *x-model-benchmark-rocm-10-0
+    environment:
+      <<: *qwen36-27B-env
+
 
   # Qwen3.6 27B MTP
   qwen36-27B-MTP-rocm-723-benchmark:
@@ -568,20 +662,25 @@ services:
     environment:
       <<: *qwen36-27B-MTP-env
 
+  qwen36-27B-MTP-rocm-10-0-benchmark:
+    <<: *x-model-benchmark-rocm-10-0
+    environment:
+      <<: *qwen36-27B-MTP-env
+
 
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   qwen3-4b-128k-q6:
-    <<: *x-model-rocm-7-14
+    <<: *x-model-rocm-10-0
     environment: &qwen3-4b-128k-q6-env
-      <<: *x-model-rocm-7-14-env
+      <<: *x-model-rocm-10-0-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q6_K_XL.gguf
     ports:
       - 8150:8080
 
   qwen3-4b-128k-q6-voice:
-    <<: *x-model-rocm-7-14
+    <<: *x-model-rocm-10-0
     environment: &qwen3-4b-128k-q6-env
-      <<: *x-model-rocm-7-14-env
+      <<: *x-model-rocm-10-0-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3-4B-128K-GGUF/snapshots/a21842b9582c3888b30568b8e84afe533275f646/Qwen3-4B-128K-UD-Q6_K_XL.gguf
       # Direct response mode, non-thinking-mode, give immediate response, better UX for voice chat
       LLAMA_ARG_REASONING: off
@@ -603,13 +702,18 @@ services:
     environment:
       <<: *qwen3-4b-128k-q6-env
 
+  qwen3-4b-128k-q6-rocm-10-0-benchmark:
+    <<: *x-model-benchmark-rocm-10-0
+    environment:
+      <<: *qwen3-4b-128k-q6-env
+
 
 
   # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   qwen3.8-27B-q4: &qwen3.8-27B-q4
-    <<: *x-model-rocm-7-14
+    <<: *x-model-rocm-10-0
     environment: &qwen3.8-27B-q4-env
-      <<: *x-model-rocm-7-14-env
+      <<: *x-model-rocm-10-0-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/Qwen3.8-27B-UD-Q4_K_XL.gguf
       #LLAMA_ARG_CONT_BATCHING: off
       LLAMA_ARG_TOP_K: 20
@@ -625,60 +729,10 @@ services:
       --jinja
       --chat-template-file /templates/qwen-sharp-chat.jinja
 
-  qwen3.8-27B-q8: &qwen3.8-27B-q8
-    <<: *x-model-rocm-7-14
-    environment: &qwen3.8-27B-q8-env
-      <<: *x-model-rocm-7-14-env
-      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/Qwen3.8-27B-Q8_0.gguf
-      #LLAMA_ARG_CONT_BATCHING: off
-      LLAMA_ARG_TOP_K: 20
-    ports:
-      - 8161:8080
-    command: >-
-      llama-server
-      --no-warmup
-      --temp 1.0
-      --presence-penalty 1.5
-      --mmproj /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/mmproj-BF16.gguf
-      --spec-type draft-mtp
-      --jinja
-      --chat-template-file /templates/qwen-sharp-chat.jinja
-
-  qwen3.8-27B-q4-rocm-723-benchmark:
-    <<: *x-model-benchmark-rocm-723
-    environment:
-      <<: *qwen3.8-27B-q4-env
-
-  qwen3.8-27B-q4-rocm-724-benchmark:
-    <<: *x-model-benchmark-rocm-724
-    environment:
-      <<: *qwen3.8-27B-q4-env
-
-  qwen3.8-27B-q4-rocm-7-14-benchmark:
-    <<: *x-model-benchmark-rocm-7-14
-    environment:
-      <<: *qwen3.8-27B-q4-env
-
-  qwen3.8-27B-q8-rocm-723-benchmark:
-    <<: *x-model-benchmark-rocm-723
-    environment:
-      <<: *qwen3.8-27B-q8-env
-
-  qwen3.8-27B-q8-rocm-724-benchmark:
-    <<: *x-model-benchmark-rocm-724
-    environment:
-      <<: *qwen3.8-27B-q8-env
-
-  qwen3.8-27B-q8-rocm-7-14-benchmark:
-    <<: *x-model-benchmark-rocm-7-14
-    environment:
-      <<: *qwen3.8-27B-q8-env
-
-  # --------------------------------------------------------------------------------------------------------------------------------------------------------------
   qwen3.8-27B-q6: &qwen3.8-27B-q6
-    <<: *x-model-rocm-7-14
+    <<: *x-model-rocm-10-0
     environment: &qwen3.8-27B-q6-env
-      <<: *x-model-rocm-7-14-env
+      <<: *x-model-rocm-10-0-env
       LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/Qwen3.8-27B-UD-Q6_K_XL.gguf
       #LLAMA_ARG_CONT_BATCHING: off
       LLAMA_ARG_TOP_K: 20
@@ -694,6 +748,47 @@ services:
       --jinja
       --chat-template-file /templates/qwen-sharp-chat.jinja
 
+  qwen3.8-27B-q8: &qwen3.8-27B-q8
+    <<: *x-model-rocm-10-0
+    environment: &qwen3.8-27B-q8-env
+      <<: *x-model-rocm-10-0-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/Qwen3.8-27B-Q8_0.gguf
+      #LLAMA_ARG_CONT_BATCHING: off
+      LLAMA_ARG_TOP_K: 20
+    ports:
+      - 8161:8080
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --presence-penalty 1.5
+      --mmproj /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/mmproj-BF16.gguf
+      --spec-type draft-mtp
+      --jinja
+      --chat-template-file /templates/qwen-sharp-chat.jinja
+
+  # Q4
+  qwen3.8-27B-q4-rocm-723-benchmark:
+    <<: *x-model-benchmark-rocm-723
+    environment:
+      <<: *qwen3.8-27B-q4-env
+
+  qwen3.8-27B-q4-rocm-724-benchmark:
+    <<: *x-model-benchmark-rocm-724
+    environment:
+      <<: *qwen3.8-27B-q4-env
+
+  qwen3.8-27B-q4-rocm-7-14-benchmark:
+    <<: *x-model-benchmark-rocm-7-14
+    environment:
+      <<: *qwen3.8-27B-q4-env
+
+  qwen3.8-27B-q4-rocm-10-0-benchmark:
+    <<: *x-model-benchmark-rocm-10-0
+    environment:
+      <<: *qwen3.8-27B-q4-env
+
+  # Q6
   qwen3.8-27B-q6-rocm-723-benchmark:
     <<: *x-model-benchmark-rocm-723
     environment:
@@ -709,8 +804,68 @@ services:
     environment:
       <<: *qwen3.8-27B-q6-env
 
+  qwen3.8-27B-q6-rocm-10-0-benchmark:
+    <<: *x-model-benchmark-rocm-10-0
+    environment:
+      <<: *qwen3.8-27B-q6-env
+
+  # Q8
+  qwen3.8-27B-q8-rocm-723-benchmark:
+    <<: *x-model-benchmark-rocm-723
+    environment:
+      <<: *qwen3.8-27B-q8-env
+
+  qwen3.8-27B-q8-rocm-724-benchmark:
+    <<: *x-model-benchmark-rocm-724
+    environment:
+      <<: *qwen3.8-27B-q8-env
+
+  qwen3.8-27B-q8-rocm-7-14-benchmark:
+    <<: *x-model-benchmark-rocm-7-14
+    environment:
+      <<: *qwen3.8-27B-q8-env
+
+  qwen3.8-27B-q8-rocm-10-0-benchmark:
+    <<: *x-model-benchmark-rocm-10-0
+    environment:
+      <<: *qwen3.8-27B-q8-env
+
+
 
   # ---------------------------------------------------------------------------------------------------------------------------------
+
+  qwen3.8-Flash-Next-IQ4: &qwen3.8-Flash-Next-IQ4
+    <<: *x-model-rocm-10-0
+    environment: &qwen3.8-flash-next-env
+      <<: *x-model-rocm-10-0-env
+      LLAMA_ARG_MODEL: /huggingface/hub/models--unsloth--Qwen3.8-Flash-Next-GGUF/snapshots/8bdc666649440e9bdc97e16f3f75782c98478ff5/UD-IQ4_XS/Qwen3.8-Flash-Next-UD-IQ4_XS-00001-of-00003.gguf
+      #LLAMA_ARG_CONT_BATCHING: off
+      LLAMA_ARG_TOP_K: 20
+    ports:
+      - 8160:8080
+    command: >-
+      llama-server
+      --no-warmup
+      --temp 1.0
+      --presence-penalty 1.5
+      --jinja
+      --chat-template-file /templates/qwen-sharp-chat.jinja
+    #  --spec-type draft-mtp
+    #  --mmproj /huggingface/hub/models--unsloth--Qwen3.8-27B-GGUF/snapshots/f1bfb127c64f7072bdd2cad55f258b9c8b2910fe/mmproj-BF16.gguf
+
+  qwen3.8-Flash-Next-IQ4-rocm-7-14-benchmark:
+    <<: *x-model-benchmark-rocm-7-14
+    environment:
+      <<: *qwen3.8-flash-next-env
+
+  qwen3.8-Flash-Next-IQ4-rocm-10-0-benchmark:
+    <<: *x-model-benchmark-rocm-10-0
+    environment:
+      <<: *qwen3.8-flash-next-env
+
+
+  # ---------------------------------------------------------------------------------------------------------------------------------
+
 
   # Kokoro TTS
   kokoro-tts:
@@ -733,8 +888,8 @@ services:
       - tts
     #image: ghcr.io/remsky/kokoro-fastapi-rocm:latest-amd64
     image: berne/kokoro-fastapi-rocm:latest-amd64
+    pull_policy: never
     environment:
       API_LOG_LEVEL: INFO
     ports:
       - 8890:8880
-
