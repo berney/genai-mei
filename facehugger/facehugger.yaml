@@ -111,3 +111,32 @@ models:
       - Qwen3.8-27B-UD-Q6_K_XL.gguf
       - Qwen3.8-27B-Q8_0.gguf
       - mmproj-BF16.gguf
+
+  - repo: unsloth/Qwen3.8-Flash-Next-GGUF
+    include:
+      - UD-IQ4_XS/*
+
+
+  #- repo: Comfy-Org/stable-audio-3
+  #  include:
+  #    #- checkpoints/stable_audio_3_medium.safetensors
+  #    - text_encoders/t5gemma_b_b_ul2.safetensors
+
+  #- repo: Comfy-Org/Qwen3.5
+  #  include:
+  #    - text_encoders/qwen3.5_2b_bf16.safetensors
+
+  #- repo: Comfy-Org/ace_step_1.5_ComfyUI_files
+  #  include:
+  #    #- split_files/vae/ace_1.5_vae.safetensors
+  #    #- split_files/text_encoders/qwen_0.6b_ace15.safetensors
+  #    #- split_files/text_encoders/qwen_4b_ace15.safetensors
+  #    #- split_files/diffusion_models/acestep_v1.5_xl_turbo_bf16.safetensors
+  #    - split_files/diffusion_models/acestep_v1.5_xl_sft_bf16.safetensors
+
+  #- repo: Comfy-Org/MiniMax-H3
+  #  include:
+  #    - vae/minimax_h3_audio_vae_fp32.safetensors
+  #    - vae/minimax_h3_video_vae_fp16.safetensors
+  #    - text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors
+  #    - diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors
