@@ -1,0 +1,8 @@
+modelRoles:
+  default: llama-swap/qwen3.6-35B-A3B-MTP
+symbolPreset: unicode
+compose:
+  shape: band
+theme:
+  dark: titanium
+setupVersion: 2

@@ -1,0 +1,15 @@
+providers:
+  llama-swap:
+    baseUrl: http://host.containers.internal:8090/v1
+    # /v1/responses is OpenAI’s newer, agent-oriented API
+    api: openai-responses
+    # /v1/completions is the original prompt-in/text-out API and is now legacy for most conversational or tool-using work
+    #api: openai-completions
+    auth: none
+    discovery:
+      #type: openai-models-list
+      #type: ollama
+      #type: proxy
+      #type: litellm
+      # `llama.cpp` type will let you select a thinking level for Qwen models
+      type: llama.cpp

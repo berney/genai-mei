@@ -1,0 +1,47 @@
+From fc29012319e92ccd7f4636916dadcb4bf8b4d84a Mon Sep 17 00:00:00 2001
+From: Berne Campbell <3227426+berney@users.noreply.github.com>
+Date: Sun, 30 Aug 2026 17:14:10 +1000
+Subject: [PATCH] Bdawgify Dockerfile
+
+- Run as user
+- Bake in config for llama-swap
+---
+ Dockerfile | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/Dockerfile b/Dockerfile
+index b1d629d10b..db2ca72a8a 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -207,3 +207,28 @@ RUN bun --cwd=packages/coding-agent run gen:tool-views
+ 
+ ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/omp"]
+ CMD ["--help"]
++
++
++############################
++# 4) bdawg - pi-runtime + pi source + bun install (DEFAULT)
++#
++# A self-contained, runnable omp image. `docker run oh-my-pi/pi --help`
++# Just Works without a host checkout.
++#
++# Has working config for llama-swap
++############################
++FROM pi-runtime AS bdawg
++ARG UID=1000
++ARG GID=1000
++ARG USER=bdawg
++ARG GROUP=bdawg
++# They have set PATH above removing /sbin
++RUN <<-EOF
++        /usr/sbin/groupadd --gid "$GID" "$GROUP"
++        /usr/sbin/useradd --uid "$UID" --gid "$GID" --create-home "$USER"
++EOF
++USER "$USER"
++WORKDIR /work
++COPY --link --chown="$USER:$GROUP" ./agent/ /home/$USER/.omp/agent/
++# I want to drop into interactive shell
++CMD []
+-- 
+2.55.0
+
