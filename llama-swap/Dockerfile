@@ -56,3 +56,8 @@ RUN <<-EOF
     id $USER
 EOF
 USER $USER
+
+# Override the upstream healthcheck (curl -f http://localhost:8080/): "/" returns
+# 302 and floods llama-swap's access log. /wol-health is llama-swap's dedicated
+# health endpoint and is on its access-log skip list.
+HEALTHCHECK CMD curl -f http://localhost:8080/wol-health || exit 1
