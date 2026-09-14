@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+# One-shot aiperf load test against a service in this compose stack.
+#
+#   ./aiperf <service> [aiperf profile args...]
+#   ./aiperf qwen3.8-Flash-Next-IQ4
+#   ./aiperf qwen3.8-Flash-Next-IQ4 --max-time 120 --request-count 32
+#   ./aiperf llama-swap --url http://qwen3.8-Flash-Next-IQ4:8080 --model qwen3.8-Flash-Next-IQ4
+#   ./aiperf profile --url http://host:port/v1 --model m ...   # no defaults at all
+#   ./aiperf --help                                             # aiperf's own help
+#
+# The service name becomes both the OpenAI base URL (http://<service>:8080)
+# and --model, and the container joins the compose default network, so service
+# DNS resolves. Nothing keeps running afterwards (--rm).
+#
+# Outputs land in ./aiperf-results (mounted at /results).
+#
+set -eu
+export PODMAN_COMPOSE_WARNING_LOGS=false
+
+usage() {
+    sed -n '3,18p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+[ $# -gt 0 ] || { usage >&2; exit 1; }
+
+# Full control: ./aiperf profile ... and ./aiperf --help / analyze / etc.
+case $1 in
+    profile)  exec docker compose run --rm --no-deps aiperf aiperf "$@" ;;
+    -h|--help) usage ;;
+    --*)      exec docker compose run --rm --no-deps aiperf aiperf "$@" ;;
+esac
+
+service=$1
+shift
+
+has_url=false
+has_model=false
+for arg in "$@"; do
+    case $arg in
+        --url|--url=*) has_url=true ;;
+        -m|--model|-m=*|--model=*) has_model=true ;;
+    esac
+done
+
+set -- profile --endpoint-type chat --tokenizer builtin --use-server-token-count "$@"
+$has_url  || set -- "$@" --url "http://$service:8080"
+$has_model || set -- "$@" --model "$service"
+
+# llama.cpp's tokeniser, not aiperf's, so counts match the server
+exec docker compose run --rm --no-deps aiperf aiperf "$@"
+
+# vim: ts=4 sw=4 et

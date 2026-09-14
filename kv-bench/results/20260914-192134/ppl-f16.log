@@ -1,0 +1,15 @@
+time="2026-09-14T19:25:56+10:00" level=warning msg="No services to build"
+time="2026-09-14T19:25:56+10:00" level=warning msg="No services to build"
+ Container genai-mei-qwen3.8-Flash-Next-IQ4-run-69b6d9f69630 Creating 
+ Container genai-mei-qwen3.8-Flash-Next-IQ4-run-69b6d9f69630 Created 
+warn: LLAMA_ARG_MODEL environment variable is set, but will be overwritten by command line argument -m
+warn: LLAMA_ARG_N_GPU_LAYERS environment variable is set, but will be overwritten by command line argument -ngl
+warn: LLAMA_ARG_FLASH_ATTN environment variable is set, but will be overwritten by command line argument -fa
+0.28.227.260 I cmn          init: llama threadpool init, n_threads = 16
+0.28.368.390 I 
+0.28.368.609 I system_info: n_threads = 16 (n_threads_batch = 16) / 32 | ROCm : NO_VMM = 1 | FA_QUANTS = q4_0-q4_0,q8_0-q8_0,f16-f16,bf16-bf16 | CPU : SSE3 = 1 | SSSE3 = 1 | AVX = 1 | AVX2 = 1 | F16C = 1 | FMA = 1 | BMI2 = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+0.28.368.856 I perplexity: saving all logits to /out/logits-baseline.bin
+0.28.368.955 I perplexity: tokenizing the input ..
+0.28.492.076 I perplexity: tokenization took 123.108 ms
+0.28.492.215 I perplexity: calculating perplexity over 3 chunks, n_ctx=8192, batch_size=2048, n_seq=1
+0.58.505.715 I perplexity: 29.28 seconds per pass - ETA 1.49.571.021 I Final estimate: PPL = 2.8392 +/- 0.05002

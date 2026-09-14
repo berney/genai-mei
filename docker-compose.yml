@@ -169,6 +169,31 @@ volumes:
 
 
 services:
+  omp:
+    image: berne/oh-my-pi
+    profiles:
+      - omp
+    userns_mode: keep-id
+    security_opt:
+      - label=disable
+    working_dir: /app/
+    volumes:
+      - ./:/app/:Z
+
+  # One-shot load tester (no long-lived container): use the ./aiperf wrapper, or
+  #   docker compose run --rm --no-deps aiperf aiperf profile \
+  #     --url http://qwen3.8-Flash-Next-IQ4:8080 --model qwen3.8-Flash-Next-IQ4 \
+  #     --endpoint-type chat --tokenizer builtin --use-server-token-count
+  # Service-name DNS resolves because `run` joins the compose default network.
+  aiperf:
+    image: berne/aiperf
+    profiles:
+      - benchmark
+    userns_mode: keep-id
+    working_dir: /results
+    volumes:
+      - ./aiperf-results:/results:Z
+
   comfyui:
     #image: docker.io/kyuz0/amd-strix-halo-comfyui
     image: berne/comfyui

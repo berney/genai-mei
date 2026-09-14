@@ -1,0 +1,16 @@
+service: qwen3.8-Flash-Next-IQ4
+model:   /huggingface/hub/models--unsloth--Qwen3.8-Flash-Next-GGUF/snapshots/8bdc666649440e9bdc97e16f3f75782c98478ff5/UD-IQ4_XS/Qwen3.8-Flash-Next-UD-IQ4_XS-00001-of-00003.gguf
+variants: f16 q8_0 q4_0 (baseline f16) pp='0' tg=64 depth=1024,4096,16384 pg='' reps=2 ppl=0 ctx=8192 chunks=3
+stopping: comfyui llama-swap qwen3.8-Flash-Next-IQ4 
+memory: 9.8Gi used, 107Gi free (avail 115Gi)
+== bench-f16 (17s elapsed)
+ok   bench-f16  9.8Gi used, 95Gi free (avail 115Gi)
+== bench-q8_0 (123s elapsed)
+ok   bench-q8_0  9.2Gi used, 95Gi free (avail 115Gi)
+== bench-q4_0 (228s elapsed)
+ok   bench-q4_0  9.2Gi used, 94Gi free (avail 115Gi)
+done in 5m 9.2Gi used, 94Gi free (avail 115Gi)
+results: /var/home/bdawg/genai/genai-mei/kv-bench/results/20260914-204812
+restoring: comfyui llama-swap qwen3.8-Flash-Next-IQ4 
+qwen3.8-Flash-Next-IQ4 healthy on :8160 after 28s
+llama-swap reachable on :8090

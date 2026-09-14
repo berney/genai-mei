@@ -1,0 +1,6 @@
+time="2026-09-14T20:52:00+10:00" level=warning msg="No services to build"
+time="2026-09-14T20:52:00+10:00" level=warning msg="No services to build"
+ Container genai-mei-qwen3.8-Flash-Next-IQ4-run-bd1f24c12a04 Creating 
+ Container genai-mei-qwen3.8-Flash-Next-IQ4-run-bd1f24c12a04 Created 
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 126976 MiB):
+  Device 0: AMD Radeon 8060S Graphics, gfx1151 (0x1151), VMM: no, Wave Size: 32, VRAM: 126976 MiB
