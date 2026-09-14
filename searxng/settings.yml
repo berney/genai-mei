@@ -649,6 +649,7 @@ engines:
     engine: cara
     shortcut: ca
     disabled: true
+    inactive: true
 
   # - name: chatnoir
   #   engine: chatnoir
