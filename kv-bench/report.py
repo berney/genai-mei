@@ -71,6 +71,110 @@ def quality(variant: str, roots):
     return info
 
 
+SPEC_ORDER = ["none", "f16", "q8_0", "q4_0"]
+SPEC_DRAFTS = "llamacpp:spec_decode_num_drafts_total"
+SPEC_DTOK = "llamacpp:spec_decode_num_draft_tokens_total"
+SPEC_ACC = "llamacpp:spec_decode_num_accepted_tokens_total"
+
+
+def metric_sum(path: Path, name):
+    """Sum a Prometheus counter across its label series."""
+    total = None
+    if not path.exists():
+        return None
+    for line in path.read_text(errors="replace").splitlines():
+        if line.startswith("#") or " " not in line:
+            continue
+        key, _, val = line.rpartition(" ")
+        if key.split("{", 1)[0] != name:
+            continue
+        try:
+            total = (total or 0.0) + float(val)
+        except ValueError:
+            pass
+    return total
+
+
+def spec_rows(roots):
+    """One row per spec-<variant>.json produced by spec-bench.sh."""
+    rows, seen = [], set()
+    for root in roots:
+        for f in sorted(root.glob("spec-*.json")):
+            v = f.stem[len("spec-"):]
+            if v in seen:
+                continue
+            seen.add(v)
+            try:
+                data = json.loads(f.read_text())
+            except ValueError:
+                continue
+            mf = root / f"spec-{v}.metrics"
+            drafts = metric_sum(mf, SPEC_DRAFTS) or 0.0
+            dtok = metric_sum(mf, SPEC_DTOK) or 0.0
+            acc = metric_sum(mf, SPEC_ACC) or 0.0
+            rows.append({
+                "v": v,
+                "tps": data.get("mean_tok_per_s"),
+                "out": data.get("output_sha256", ""),
+                "drafts": drafts,
+                "accept": acc / dtok if dtok else None,
+                # each draft step always contributes the verified token too
+                "mean_len": (acc + drafts) / drafts if drafts else None,
+                "per": {r["kind"]: r for r in data.get("requests", [])},
+            })
+    rows.sort(key=lambda r: SPEC_ORDER.index(r["v"]) if r["v"] in SPEC_ORDER else len(SPEC_ORDER))
+    return rows
+
+
+def spec_lines(rows):
+    base = next((r for r in rows if r["v"] == "none"), rows[0])
+    out = ["# Speculative decoding: draft KV cache (`-ctkd` / `-ctvd`)", "",
+           "`--spec-type draft-mtp` with an MTP head; `-ctkd`/`-ctvd` set the draft "
+           "cache type, the target cache stays f16. Greedy `--temp 0` requests with "
+           "`ignore_eos`, one server per variant. Acceptance = accepted / drafted "
+           "tokens; mean len = tokens per decode step (1 + accepted per draft).", ""]
+    out += ["| variant | tok/s | vs " + base["v"] + " | acceptance | drafts | mean len | output |",
+            "|---|---|---|---|---|---|---|"]
+    for r in rows:
+        rel = "—"
+        if r is not base and base["tps"] and r["tps"]:
+            rel = f"{(r['tps'] / base['tps'] - 1) * 100:+.1f}%"
+        if r is base:
+            rel = "baseline" + ("" if r["v"] == "none" else " (draft f16)")
+        note = "—"
+        if r is not base and base["out"]:
+            note = "identical to " + base["v"] if r["out"] == base["out"] \
+                else "**differs from " + base["v"] + "**"
+        out.append("| {} | {} | {} | {} | {} | {} | `{}` {} |".format(
+            r["v"],
+            "—" if r["tps"] is None else f"{r['tps']:.1f}",
+            rel,
+            "—" if r["accept"] is None else f"{r['accept'] * 100:.2f}%",
+            f"{r['drafts']:.0f}",
+            "—" if r["mean_len"] is None else f"{r['mean_len']:.2f}",
+            str(r["out"])[:16], note))
+    out.append("")
+    dead = [r["v"] for r in rows if r["v"] != "none" and not r["drafts"]]
+    if dead:
+        out += [f"**Warning: no drafts counted for {', '.join(dead)} -- speculation did not run.**", ""]
+
+    kinds = []
+    for r in rows:
+        for k in r["per"]:
+            if k not in kinds:
+                kinds.append(k)
+    if kinds:
+        out += ["## Per-prompt decode speed (tok/s)", "",
+                "| prompt | " + " | ".join(r["v"] for r in rows) + " |",
+                "|---|" + "---|" * len(rows)]
+        for k in kinds:
+            out.append("| {} | {} |".format(
+                k, " | ".join("—" if k not in r["per"] else f"{r['per'][k]['tok_per_s']:.1f}"
+                              for r in rows)))
+        out.append("")
+    return out
+
+
 def main(dirs):
     roots = []
     for d in dirs:
@@ -78,6 +182,13 @@ def main(dirs):
         if not p.is_dir():
             sys.exit(f"not a directory: {p}")
         roots.append(p)
+
+    spec = spec_rows(roots)
+    if spec and not any(any(r.glob("bench-*.out")) for r in roots):
+        text = "\n".join(spec_lines(spec))
+        (roots[0] / "report.md").write_text(text + "\n")
+        print(text)
+        return
 
     variants, speed = [], {}
     for root in roots:

@@ -1,0 +1,74 @@
+{
+  "label": "f16",
+  "url": "http://127.0.0.1:9161",
+  "requests": [
+    {
+      "kind": "code-python",
+      "seconds": 4.729,
+      "completion_tokens": 192,
+      "prompt_tokens": 210,
+      "tok_per_s": 40.6,
+      "sha256": "7d8122d6e722aa26"
+    },
+    {
+      "kind": "code-rust",
+      "seconds": 5.014,
+      "completion_tokens": 192,
+      "prompt_tokens": 192,
+      "tok_per_s": 38.29,
+      "sha256": "8123bc89dec75472"
+    },
+    {
+      "kind": "explain-c",
+      "seconds": 5.715,
+      "completion_tokens": 192,
+      "prompt_tokens": 183,
+      "tok_per_s": 33.59,
+      "sha256": "f9c0b852c953aee5"
+    },
+    {
+      "kind": "structured-json",
+      "seconds": 5.447,
+      "completion_tokens": 192,
+      "prompt_tokens": 153,
+      "tok_per_s": 35.25,
+      "sha256": "edaabcba059726a9"
+    },
+    {
+      "kind": "math",
+      "seconds": 6.62,
+      "completion_tokens": 192,
+      "prompt_tokens": 256,
+      "tok_per_s": 29.0,
+      "sha256": "61193b54aec3152d"
+    },
+    {
+      "kind": "prose",
+      "seconds": 7.455,
+      "completion_tokens": 192,
+      "prompt_tokens": 196,
+      "tok_per_s": 25.76,
+      "sha256": "c3b811af6c6cab05"
+    },
+    {
+      "kind": "ops-runbook",
+      "seconds": 6.17,
+      "completion_tokens": 192,
+      "prompt_tokens": 114,
+      "tok_per_s": 31.12,
+      "sha256": "561c8754b9bf6b9c"
+    },
+    {
+      "kind": "summarize",
+      "seconds": 5.766,
+      "completion_tokens": 192,
+      "prompt_tokens": 210,
+      "tok_per_s": 33.3,
+      "sha256": "35515eae625cded9"
+    }
+  ],
+  "mean_tok_per_s": 33.36,
+  "overall_tok_per_s": 32.74,
+  "total_completion_tokens": 1536,
+  "output_sha256": "461ca1d809ae1ea0"
+}

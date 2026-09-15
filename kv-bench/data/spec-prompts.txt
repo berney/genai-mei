@@ -1,0 +1,148 @@
+# kind: code-python
+# Rate-limited async task runner with retry and jitter.
+import asyncio
+import random
+import time
+from dataclasses import dataclass, field
+
+
+@dataclass
+class Task:
+    fn: object
+    args: tuple
+    kwargs: dict
+    attempts: int = 0
+    submitted: float = field(default_factory=time.monotonic)
+
+
+class Runner:
+    """Run submitted coroutines with at most `concurrency` in flight.
+
+    Failed tasks are retried up to `retries` times with exponential backoff
+    plus jitter. Results come back in submission order.
+    """
+
+    def __init__(self, concurrency=8, retries=3, base_delay=0.2, timeout=30.0):
+        self._queue = asyncio.Queue()
+        self._sem = asyncio.Semaphore(concurrency)
+        self.retries = retries
+        self.base_delay = base_delay
+        self.timeout = timeout
+
+    async def _worker(self):
+
+# kind: code-rust
+/// A small slab allocator over a fixed-size arena.
+///
+/// Blocks are power-of-two sized; freed blocks are pushed onto a free list
+/// and coalesced with their buddy when both halves become unused.
+pub struct Slab<const N: usize> {
+    memory: [u8; N],
+    free: Vec<(usize, usize)>,
+    in_use: usize,
+}
+
+impl<const N: usize> Slab<N> {
+    pub fn new() -> Self {
+        Self {
+            memory: [0; N],
+            free: Vec::new(),
+            in_use: 0,
+        }
+    }
+
+    /// Allocate `len` bytes, returning the offset into the arena.
+    pub fn allocate(&mut self, len: usize) -> Option<usize> {
+        let size = len.next_power_of_two().max(16);
+
+# kind: explain-c
+What does this function do, and what are its failure modes?
+
+```c
+static int ggml_backend_registry_register_backend(struct ggml_backend_registry * registry, ggml_backend_t backend) {
+    if (backend == NULL) {
+        return 0;
+    }
+    for (size_t i = 0; i < registry->backends.size(); i++) {
+        if (strcmp(ggml_backend_name(backend), ggml_backend_name(registry->backends[i])) == 0) {
+            REGISTRY_LOG_ERR("backend with the same name '%s' is already registered\n", ggml_backend_name(backend));
+            return 0;
+        }
+    }
+    registry->backends.push_back(backend);
+    return 1;
+}
+```
+
+Answer in prose, then list the failure modes as bullet points:
+
+# kind: structured-json
+Extract every host, port and enabled flag from the config below into a JSON
+array of objects with exactly the keys `host`, `port`, `tls`, `enabled`.
+Unknown or missing values must be `null`. Emit JSON only.
+
+config:
+  frontend: 10.0.4.11:8443 tls=yes
+  metrics: 10.0.4.12:9100 tls=no enabled=yes
+  cache: redis.internal:6379 enabled=no
+  search: 10.0.9.201:9200 tls=yes enabled=yes
+  gateway: edge-gw:8080 tls=auto
+
+output:
+[
+
+# kind: math
+Claim: for every finite simple graph G with n vertices and more than n-1 edges,
+G contains a cycle.
+
+Proof by contrapositive. We show that if G is acyclic (a forest), then it has at
+most n-1 edges.
+
+Lemma: every finite forest with k >= 1 vertices has at most k-1 edges.
+Proof by induction on k. For k = 1 there are no edges, so the bound holds.
+Assume the claim for all forests on fewer than k vertices, and let F be a forest
+on k vertices. Since F is acyclic and has at least two vertices, it has a vertex
+v of degree at most 1 (a leaf or isolated vertex). Indeed, take a maximal path
+v_0 v_1 ... v_m in F; if v_0 had a neighbour other than v_1, then either that
+neighbour lies on the path, creating a cycle, or it extends the path, contradicting
+maximality. Removing v_0 leaves a forest F' on k-1 vertices, which by the induction
+hypothesis has at most k-2 edges. Adding v_0 back contributes at most one edge, hence
+
+# kind: prose
+The laundry room on the fourth floor had a window that looked out over the rail
+yard, and at three in the morning the yard lights came on in sequences that Ines
+had long ago decided meant something, though she would not have been able to say
+what. She had the machine on spin and her back to the glass because the sound was
+easier to stand when she could not see the thing making it, and because her
+grandmother had taught her that any machine worth trusting could be heard, which
+was a rule that had survived the move, the divorce, and two kitchens that were
+not hers. When the lights went on the second time she did not turn around. On
+the third time she did, and the yard was empty, every light on, and there was a
+man in a high-visibility jacket standing on the wrong side of the fence looking
+up at her window with the patient expression of somebody who has all night and
+
+# kind: ops-runbook
+Our llama.cpp server on a unified-memory desktop sometimes gets OOM-killed after
+a few hours of traffic. Write a runbook section that diagnoses this: what to look
+at in `dmesg`, in the server's own logs, and in `/proc/meminfo`, how to tell KV
+cache pressure from a leak in the chat template or an unbounded slot cache, and
+what mitigations exist (context size, parallel slots, KV offload, cache reuse).
+Be concrete about commands and about what each symptom implies.
+
+## Diagnosis
+
+# kind: summarize
+Summarise the argument in five bullet points, then state the strongest objection.
+
+The recommendation to keep the key-value cache in f16 rests on a measurement that
+is easy to misread. On a hybrid architecture, most layers hold no cache at all,
+so a quantisation that appears to halve cache memory in the papers halves only a
+small slice of the working set here. Worse, the sparse attention scheme bounds
+how much of that cache any single decoding step touches, which means the bytes
+saved were never on the critical path. The measured throughput delta lands inside
+the noise of the harness, while the change in per-token divergence does not: it is
+small but statistically real, and it is concentrated in exactly the positions where
+the model is uncertain, which is where a decoding change is most visible to a user.
+The conclusion is not that quantised caches are useless, but that they are a memory
+instrument, not a speed instrument, and must be justified by capacity rather than
+by latency.

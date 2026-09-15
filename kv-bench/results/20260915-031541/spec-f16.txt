@@ -1,0 +1,167 @@
+===== code-python =====
+
+        while True:
+            task = await self._queue.get()
+            try:
+                await self._run(task)
+            finally:
+                self._queue.task_done()
+
+    async def _run(self, task):
+        while True:
+            async with self._sem:
+                try:
+                    result = await asyncio.wait_for(task.fn(*task.args, **task.kwargs), timeout=self.timeout)
+                    task.result = result
+                    task.error = None
+                    return
+                except Exception as exc:
+                    task.attempts += 1
+                    if task.attempts > self.retries:
+                        task.result = None
+                        task.error = exc
+                        return
+                    delay = self.base_delay * (2 ** (task.attempts - 1))
+                    await asyncio.sleep(delay + random.uniform(0, delay))
+
+    async def submit(self, fn, *args, **kwargs):
+===== code-rust =====
+
+        if size > N {
+            return None;
+        }
+
+        // Try to find a free block that fits.
+        if let Some(idx) = self
+            .free
+            .iter()
+            .position(|&(_, s)| s >= size)
+        {
+            let (offset, block_size) = self.free.remove(idx);
+            // Split block if it's larger than needed.
+            if block_size > size {
+                let mut current_size = block_size;
+                let mut current_offset = offset;
+                while current_size > size {
+                    current_size /= 2;
+                    self.free.push((current_offset, current_size));
+                    current_offset += current_size;
+                }
+            }
+            self.in_use += size;
+            return Some(offset);
+        }
+
+        None
+    }
+
+    /// Free a previously allocated block.
+    pub
+===== explain-c =====
+
+
+<think>
+The user is asking me to analyze a C function from what appears to be the ggml library (used in llama.cpp). Let me analyze what it does and identify its failure modes.
+
+The function registers a backend into a registry. Let me trace through it:
+
+1. It takes a registry and a backend pointer.
+2. If backend is NULL, it returns 0 (failure).
+3. It iterates through all existing backends in the registry, comparing names. If a backend with the same name already exists, it logs an error and returns 0 (failure).
+4. If no duplicate is found, it pushes the backend onto the registry's vector and returns 1 (success).
+
+Now for failure modes:
+
+1. **NULL backend**: Returns 0 silently without logging. This is a failure mode - the caller gets no diagnostic information about why registration failed.
+
+2. **Duplicate name**: Returns
+===== structured-json =====
+
+  {"host": "10.0.4.11", "port": 8443, "tls": true, "enabled": null},
+  {"host": "10.0.4.12", "...
+
+<think>
+The user wants me to parse a config and extract host, port, tls, and enabled flags into a JSON array. Let me parse each line:
+
+1. `frontend: 10.0.4.11:8443 tls=yes`
+   - host: "10.0.4.11", port: 8443, tls: true, enabled: null (not specified)
+
+2. `metrics: 10.0.4.12:9100 tls=no enabled=yes`
+   - host: "10.0.4.12", port: 91
+===== math =====
+
+F has at most (k-2) + 1 = k-1 edges.
+
+Now let G be a graph with n vertices and more than n-1 edges. If G were acyclic,
+then by the lemma it would have at most n-1 edges, a contradiction. Therefore G
+contains a cycle.
+
+QED.
+
+Note: the argument is constructive: repeatedly delete vertices of degree at most 1;
+if the process removes all vertices, the graph is a forest and has at most n-1 edges.
+If some vertices remain, they form a subgraph of minimum degree at least 2, which
+necessarily contains a cycle.
+
+Now, provide the shorter answer in the format
+
+ANSWER: [TRUE / FALSE]
+
+<think>
+The user asks me to evaluate whether the claim "for every finite simple graph G with n vertices and more than n-1 edges, G contains a cycle
+===== prose =====
+
+means to use it.
+
+She closed the blind. She opened it. He was still there. She went down two
+flights and came back up with the maintenance key and the phone in her pocket,
+and by the time she reached the window again the yard was empty in the way that
+yards are empty when they have been arranged to be empty, and she stood there
+holding the key so hard the teeth of it left marks in her palm, and she thought,
+not for the first time, that the building was keeping something from her, and
+that whatever it was had learned to wait.
+
+---
+
+The maintenance closet on the second floor smelled of rust and of the particular
+dust that lives inside radiators in buildings that were new in 1962 and have
+been trying to stop being new ever since. Ines kept the key ring on a nail by the
+door because the super had left in
+===== ops-runbook =====
+: OOM-Kill of llama.cpp on Unified Memory
+
+### 1. Confirm the kill and capture the immediate context
+
+When the server dies, the kernel OOM killer leaves a forensic trail. Run these
+**immediately** after the crash (before the next boot overwrites the ring buffer):
+
+```bash
+# Filter for OOM events; note the timestamp, PID, and memory stats
+dmesg -T | grep -iE "out of memory|oom-kill|killed process"
+
+# Get the full OOM report (includes memory breakdown and task list)
+dmesg -T | grep -A 50 "Out of memory: Killed process"
+```
+
+**What to look for in the OOM report:**
+
+| Field | Implication |
+|-------|-------------|
+| `Killed process <pid> (llama-server)` | Confirms llama.cpp was the victim,
+===== summarize =====
+
+
+<think>
+The user wants me to:
+1. Summarise the argument in five bullet points
+2. State the strongest objection
+
+Let me carefully parse the argument:
+
+The argument is about whether to keep a key-value (KV) cache in f16 (float16) rather than quantising it. The author argues against quantising the KV cache in a specific hybrid architecture context.
+
+Key points:
+1. The measurement supporting f16 is easy to misread - on a hybrid architecture, most layers hold no cache at all, so quantisation only halves a small slice of the working set.
+2. Sparse attention bounds how much cache any single decoding step touches, so the bytes saved were never on the critical path.
+3. The measured throughput delta is within noise of the harness.
+4. The per-token divergence change is small but statistically real, concentrated in uncertain positions where decoding changes are most visible to

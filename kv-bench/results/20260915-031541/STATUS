@@ -1,0 +1,42 @@
+service: qwen3.8-Flash-Next-IQ4
+model:   /huggingface/hub/models--unsloth--Qwen3.8-Flash-Next-GGUF/snapshots/8bdc666649440e9bdc97e16f3f75782c98478ff5/UD-IQ4_XS/Qwen3.8-Flash-Next-UD-IQ4_XS-00001-of-00003.gguf
+draft:   /huggingface/hub/models--unsloth--Qwen3.8-Flash-Next-GGUF/snapshots/8bdc666649440e9bdc97e16f3f75782c98478ff5/MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf
+server:  /huggingface/llama-build/b10909-mix/llama-server (LD_LIBRARY_PATH=/huggingface/llama-build/b10909-mix)
+variants: none f16 q8_0 q4_0  n_max=2 ctx=16384 tokens=192 port=9161
+stopping: comfyui llama-swap qwen3.8-Flash-Next-IQ4 
+memory: 10Gi used, 104Gi free (avail 114Gi)
+== server none (17s elapsed)
+   healthy after 28s
+ok   probe none  100Gi used, 2.4Gi free (avail 24Gi)
+llamacpp:spec_decode_num_draft_tokens_total 0
+llamacpp:spec_decode_num_accepted_tokens_total 0
+llamacpp:spec_decode_num_drafts_total 0
+== server f16 (128s elapsed)
+   healthy after 26s
+ok   probe f16  104Gi used, 1.7Gi free (avail 20Gi)
+llamacpp:spec_decode_num_draft_tokens_total 1217
+llamacpp:spec_decode_num_accepted_tokens_total 943
+llamacpp:spec_decode_num_drafts_total 610
+llamacpp:spec_decode_num_accepted_tokens_per_pos_total{position="0"} 515
+llamacpp:spec_decode_num_accepted_tokens_per_pos_total{position="1"} 428
+== server q8_0 (211s elapsed)
+   healthy after 30s
+ok   probe q8_0  104Gi used, 2.6Gi free (avail 20Gi)
+llamacpp:spec_decode_num_draft_tokens_total 1223
+llamacpp:spec_decode_num_accepted_tokens_total 940
+llamacpp:spec_decode_num_drafts_total 613
+llamacpp:spec_decode_num_accepted_tokens_per_pos_total{position="0"} 513
+llamacpp:spec_decode_num_accepted_tokens_per_pos_total{position="1"} 427
+== server q4_0 (300s elapsed)
+   healthy after 30s
+ok   probe q4_0  104Gi used, 3.3Gi free (avail 20Gi)
+llamacpp:spec_decode_num_draft_tokens_total 1233
+llamacpp:spec_decode_num_accepted_tokens_total 935
+llamacpp:spec_decode_num_drafts_total 618
+llamacpp:spec_decode_num_accepted_tokens_per_pos_total{position="0"} 514
+llamacpp:spec_decode_num_accepted_tokens_per_pos_total{position="1"} 421
+done in 6m 10Gi used, 97Gi free (avail 114Gi)
+results: /var/home/bdawg/genai/genai-mei/kv-bench/results/20260915-031541
+restoring: comfyui llama-swap qwen3.8-Flash-Next-IQ4 
+qwen3.8-Flash-Next-IQ4 healthy on :8160 after 28s
+llama-swap reachable on :8090

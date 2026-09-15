@@ -54,61 +54,16 @@ mkdir -p "$OUT"
 MODEL=$(docker compose run --rm --no-deps -T --entrypoint printenv "$KV_SERVICE" LLAMA_ARG_MODEL 2>/dev/null | tail -1)
 [ -n "$MODEL" ] || { echo "could not resolve LLAMA_ARG_MODEL for $KV_SERVICE" >&2; exit 1; }
 
-status() { echo "$*" | tee -a "$OUT/STATUS"; echo; }
-
-RESTORED=0
-STOPPED=""
-restore() {
-    rc=$?
-    [ "$RESTORED" = 1 ] && return
-    RESTORED=1
-    if [ -n "$STOPPED" ]; then
-        status "restoring: $STOPPED"
-        # model first, then the swap proxy, so llama-swap finds it warm
-        for s in $STOPPED; do
-            docker compose up -d "$s" >>"$OUT/restore.log" 2>&1 || status "FAILED to start $s"
-        done
-        # `docker compose port` prints "0.0.0.0:8160" -- keep the port only
-        model_port=$(docker compose port "$KV_SERVICE" 8080 2>/dev/null | head -1)
-        model_port=${model_port##*:}
-        [ -n "$model_port" ] || model_port=8160
-        i=0
-        until curl -sf "http://localhost:${model_port}/health" >/dev/null 2>&1; do
-            i=$((i + 1))
-            if [ "$i" -gt 300 ]; then
-                status "TIMEOUT waiting for $KV_SERVICE health on :$model_port"
-                break
-            fi
-            sleep 2
-        done
-        [ "$i" -le 300 ] && status "$KV_SERVICE healthy on :$model_port after $((i * 2))s"
-        if docker compose ps --services 2>/dev/null | grep -qx llama-swap; then
-            curl -sf "http://localhost:8090/v1/models" >/dev/null 2>&1 \
-                && status "llama-swap reachable on :8090" \
-                || status "WARNING llama-swap /v1/models not answering"
-        fi
-    fi
-    exit $rc
-}
-trap restore EXIT INT TERM
+. "$ROOT/kv-bench/lib.sh"
 
 status "service: $KV_SERVICE"
 status "model:   $MODEL"
 status "variants: $KV_VARIANTS (baseline $BASELINE) pp='$KV_PP' tg=$KV_TG depth=$KV_DEPTH pg='$KV_PG' reps=$KV_REPS ppl=$KV_PPL ctx=$KV_CTX chunks=$KV_CHUNKS"
 
 if [ "$KV_STOP" = 1 ]; then
-    STOPPED=$(docker compose ps --services 2>/dev/null | grep -E "^(llama-swap|${KV_SERVICE}|comfyui)$" | tr '\n' ' ')
-    if [ -n "$STOPPED" ]; then
-        # llama-swap first: while it runs it will respawn the model on request
-        status "stopping: $STOPPED"
-        docker compose stop llama-swap "$KV_SERVICE" comfyui >>"$OUT/stop.log" 2>&1 || true
-        sleep 5
-    else
-        STOPPED=""
-    fi
+    svc_stop
 fi
 
-free_mem() { free -h | awk '/^Mem:/ {print $3 " used, " $4 " free (avail " $7 ")"}'; }
 status "memory: $(free_mem)"
 
 run() {
